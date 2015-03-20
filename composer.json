@@ -1,0 +1,31 @@
+{
+    "name": "malangphp/singo",
+    "description": "Silex-based feature rich rest application skeleton",
+    "require": {
+        "symfony/validator": "~2.6",
+        "swiftmailer/swiftmailer": "~5.3",
+        "symfony/yaml": "~2.6",
+        "silex/silex": "~2.0@dev",
+        "dflydev/doctrine-orm-service-provider": "~2.0",
+        "league/tactician": "0.3.*",
+        "monolog/monolog": "~1.13",
+        "league/fractal": "0.11.*",
+        "symfony/security": "~2.6"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Prasetyo Wicaksono",
+            "email": "pras@openmailbox.org"
+        }
+    ],
+    "autoload" : {
+      "psr-4" : {
+          "Singo\\": "src/"
+      }
+    },
+    "minimum-stability": "stable",
+    "require-dev": {
+        "codeception/codeception": "~2.0"
+    }
+}

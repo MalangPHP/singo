@@ -1,0 +1,32 @@
+# common configuration
+common:
+  log:
+    name: singo
+    dir: /Resources/Logs
+    level: DEBUG
+  debug: 0
+
+# mailer configuration
+mailer:
+  host: localhost
+  port: 25
+  username: username
+  password: password
+  encryption: null
+  auth_mode: null
+
+# database & orm configuration
+database:
+  connection:
+    driver: pdo_mysql
+    dbname: avent
+    user: root
+    password: 123
+    hostname: localhost
+  orm:
+    proxy_dir: /Resources/Orm/Proxy
+    proxy_namespace: Singo\Resources\Orm\Proxy
+    mappings:
+      type: annotation
+      namespace: Singo\App\Entities
+      path: /App/Entities
