@@ -186,9 +186,7 @@ class Application extends SilexApplication
      */
     public function initDefaultSubscribers()
     {
-        $this["dispatcher"]->addSubscriber(function () {
-            return new ExceptionHandler($this);
-        });
+        $this["dispatcher"]->addSubscriber(new ExceptionHandler($this));
     }
 
     /**
