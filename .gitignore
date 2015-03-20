@@ -1,0 +1,9 @@
+/vendor
+/src/Resources/Logs/*.log
+/.idea
+
+composer.lock
+.env
+
+tests/_output/*
+tests/_output/*
