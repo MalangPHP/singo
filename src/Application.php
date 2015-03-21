@@ -17,6 +17,7 @@ use Silex\Provider\MonologServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\SwiftmailerServiceProvider;
 use Silex\Provider\ValidatorServiceProvider;
+use Singo\Providers\PimpleAwareEventDispatcherServiceProvider;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Validator\Mapping\Factory\LazyLoadingMetadataFactory;
 use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
@@ -47,6 +48,7 @@ class Application extends SilexApplication
      */
     public function init()
     {
+        $this->initPimpleAwareEventDispatcher();
         $this->initConfig();
         $this->initLogger();
         $this->initDatabase();
@@ -66,6 +68,14 @@ class Application extends SilexApplication
          * Save container in static variable
          */
         self::$container = $this;
+    }
+
+    /**
+     * return void
+     */
+    public function initPimpleAwareEventDispatcher()
+    {
+        $this->register(new PimpleAwareEventDispatcherServiceProvider());
     }
 
     /**
@@ -186,7 +196,12 @@ class Application extends SilexApplication
      */
     public function initDefaultSubscribers()
     {
-        $this["dispatcher"]->addSubscriber(new ExceptionHandler($this));
+        $this->registerSubscriber(
+            ExceptionHandler::class,
+            function () {
+                return new ExceptionHandler($this);
+            }
+        );
     }
 
     /**
@@ -203,12 +218,16 @@ class Application extends SilexApplication
     }
 
     /**
-     * @param EventSubscriberInterface $subscriber
-     * @TODO Implement container aware event dispatcher
+     * @param $class
+     * @param $callback
      */
-    public function registerSubscriber(EventSubscriberInterface $subscriber)
+    public function registerSubscriber($class, callable $callback)
     {
-        $this["dispatcher"]->addSubscriber($subscriber);
+        $service_id = "event." . strtolower(str_replace("\\", ".", $class));
+
+        $this[$service_id] = $callback;
+
+        $this["dispatcher"]->addSubscriberService($service_id, $class);
     }
 }
 
