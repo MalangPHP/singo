@@ -7,6 +7,8 @@ use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Monolog\Logger;
+use Silex\Provider\SecurityJWTServiceProvider;
+use Silex\Provider\SecurityServiceProvider;
 use Singo\Event\Listener\ExceptionHandler;
 use Singo\Providers\CommandBusServiceProvider;
 use Singo\Providers\ConfigServiceProvider;
@@ -18,7 +20,7 @@ use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\SwiftmailerServiceProvider;
 use Silex\Provider\ValidatorServiceProvider;
 use Singo\Providers\PimpleAwareEventDispatcherServiceProvider;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Singo\Providers\UserServiceProvider;
 use Symfony\Component\Validator\Mapping\Factory\LazyLoadingMetadataFactory;
 use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
 
@@ -54,6 +56,7 @@ class Application extends SilexApplication
         $this->initDatabase();
         $this->initValidator();
         $this->initMailer();
+        $this->initFirewall();
         $this->initCommandBus();
         $this->initFractal();
         $this->initDefaultSubscribers();
@@ -62,7 +65,7 @@ class Application extends SilexApplication
         /**
          * Silex config
          */
-        $this["debug"] = $this["sable.config"]->get("common/debug");
+        $this["debug"] = $this["singo.config"]->get("common/debug");
 
         /**
          * Save container in static variable
@@ -93,21 +96,21 @@ class Application extends SilexApplication
      */
     public function initDatabase()
     {
-        $mapping = $this["sable.config"]->get("database/orm/mappings");
+        $mapping = $this["singo.config"]->get("database/orm/mappings");
         $mapping["path"] = APP_PATH . $mapping["path"];
 
         $this->register(
             new DoctrineServiceProvider(),
             [
-                "db.options" => $this["sable.config"]->get("database/connection")
+                "db.options" => $this["singo.config"]->get("database/connection")
             ]
         );
 
         $this->register(
             new DoctrineOrmServiceProvider(),
             [
-                "orm.proxies_dir" => dirname(__FILE__) . $this["sable.config"]->get("database/orm/proxy_dir"),
-                "orm.proxies_namespace" => $this["sable.config"]->get("database/orm/proxy_namespace"),
+                "orm.proxies_dir" => dirname(__FILE__) . $this["singo.config"]->get("database/orm/proxy_dir"),
+                "orm.proxies_namespace" => $this["singo.config"]->get("database/orm/proxy_namespace"),
                 "orm.em.options" => [
                     "mappings" => [
                         $mapping
@@ -124,12 +127,12 @@ class Application extends SilexApplication
     public function initLogger()
     {
         $date = new \DateTime();
-        $log_file = APP_PATH . $this["sable.config"]->get("common/log/dir") . "/{$date->format("Y-m-d")}.log";
+        $log_file = APP_PATH . $this["singo.config"]->get("common/log/dir") . "/{$date->format("Y-m-d")}.log";
         $this->register(
             new MonologServiceProvider(),
             [
                 "monolog.logfile" => $log_file,
-                "monolog.name" => $this["sable.config"]->get("common/log/name"),
+                "monolog.name" => $this["singo.config"]->get("common/log/name"),
                 "monolog.level" => Logger::INFO
             ]
         );
@@ -159,7 +162,7 @@ class Application extends SilexApplication
      */
     public function initMailer()
     {
-        $this["swiftmailer.options"] = $this["sable.config"]->get("mailer");
+        $this["swiftmailer.options"] = $this["singo.config"]->get("mailer");
         $this->register(new SwiftmailerServiceProvider());
     }
 
@@ -202,6 +205,21 @@ class Application extends SilexApplication
                 return new ExceptionHandler($this);
             }
         );
+    }
+
+    /**
+     * initialize web application firewall
+     * return void
+     */
+    public function initFirewall()
+    {
+        $this["users"] = function () {
+            return new UserServiceProvider();
+        };
+        $this["security.jwt"] = $this["singo.config"]->get("jwt");
+        $this->register(new SecurityJWTServiceProvider());
+        $this->register(new SecurityServiceProvider());
+        $this["security.firewalls"] = $this["singo.config"]->get("firewall");
     }
 
     /**

@@ -35,7 +35,7 @@ final class ExceptionHandler implements EventSubscriberInterface
      */
     public function onSilexError(GetResponseForExceptionEvent $event)
     {
-        if ($this->container["sable.config"]->get("common/debug")) {
+        if ($this->container["singo.config"]->get("common/debug")) {
             return;
         }
 
