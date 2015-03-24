@@ -169,3 +169,90 @@ $app["test.controller"] = function(\Pimple\Container $container) {
 * /
 $app->get("/", "test.controller:indexAction");
 ~~~
+
+### Register Event
+
+Pertama anda harus membuat `SubscriberClass` yang mengimplementasi `Symfony\Component\EventDispatcher\EventSubscriberInterface`. Berikut contoh `SubscriberClass`
+
+~~~php
+<?php
+
+use Pimple\Container;
+use Singo\Bus\Exception\InvalidCommandException;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
+
+/**
+ * Class ExceptionHandler
+ * @package Singo\Event\Listener
+ */
+final class ExceptionHandler implements EventSubscriberInterface
+{
+    /**
+     * @var Container
+     */
+    private $container;
+
+    /**
+     * @param Container $container
+     */
+    public function __construct(Container $container)
+    {
+        $this->container = $container;
+    }
+
+    /**
+     * @param GetResponseForExceptionEvent $event
+     */
+    public function onSilexError(GetResponseForExceptionEvent $event)
+    {
+        if ($this->container["sable.config"]->get("common/debug")) {
+            return;
+        }
+
+        $exception = $event->getException();
+
+        if ($exception instanceof InvalidCommandException) {
+            $message = explode("|", $exception->getMessage());
+
+            $event->setResponse(new JsonResponse(
+                [
+                    "error" =>
+                    [
+                        $message[0] => $message[1]
+                    ]
+                ]
+            ), Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getSubscribedEvents()
+    {
+        // tulis event yang di listen dalam array
+        return [
+            KernelEvents::EXCEPTION => "onSilexError"
+        ];
+    }
+}
+
+// EOF
+~~~
+
+Kemudian daftarkan `SubscriberClass` kedalam applikasi pada saat boorstraping.
+
+~~~php
+$app->registerSubscriber(
+    ExceptionHandler:class,
+    function () {
+        return new ExceptionHandler();
+    }
+);
+~~~
+
+Untuk dokumentasi lebih lanjut silahkan baca tautan [berikut](http://symfony.com/doc/current/components/event_dispatcher/introduction.html).
