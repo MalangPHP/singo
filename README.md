@@ -2,6 +2,13 @@
 
 Singo adalah sebuah applikasi skeleton berbasis micro framework [Silex](http://silex.sensiolabs.org/) yang bertujuan untuk mempermudah developer untuk membuat HTTP REST based API.
 
+## Technology Stack
+
+* [Silex](http://silex.sensiolabs.org/) - Micro Framework
+* [Doctrine ORM/DBAL](http://www.doctrine-project.org/index.html) - ORM and Database Abstraction Layer
+* [Swiftmailer](http://swiftmailer.org/) - Email Interface
+* [Fractal](http://fractal.thephpleague.com/) - Manipulate Complex API response
+
 ## Arsitektur Aplikasi
 
 ![Arsitektur](http://i.imgur.com/WP8qXpl.png)
