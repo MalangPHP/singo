@@ -19,7 +19,7 @@ class ConfigServiceProvider implements ServiceProviderInterface
      */
     public function register(Container $container)
     {
-        $container["sable.config"] = function() use ($container) {
+        $container["singo.config"] = function() use ($container) {
             return new Config($container);
         };
     }
