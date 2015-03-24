@@ -218,8 +218,8 @@ class Application extends SilexApplication
     }
 
     /**
-     * @param $class
-     * @param $callback
+     * @param string $class
+     * @param callable $callback
      */
     public function registerSubscriber($class, callable $callback)
     {

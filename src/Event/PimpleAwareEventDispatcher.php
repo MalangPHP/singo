@@ -18,8 +18,14 @@ final class PimpleAwareEventDispatcher extends EventDispatcher
      */
     private $container;
 
+    /**
+     * @var array
+     */
     private $listener_ids = [];
 
+    /**
+     * @var array
+     */
     private $listeners = [];
 
     /**
