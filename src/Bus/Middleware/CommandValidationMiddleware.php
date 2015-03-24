@@ -46,7 +46,11 @@ class CommandValidationMiddleware implements Middleware
 
         $violation = $this->validator->validate($command);
         if ($violation->count() > 0) {
-            $message = $violation->get(0)->getPropertyPath() . "|" . $violation->get(0)->getMessage();
+            $message = str_replace(
+                "This value",
+                ucfirst($violation->get(0)->getPropertyPath()),
+                $violation->get(0)->getMessage()
+            );
             $this->logger->error("{$command_name} : {$message}");
             throw new InvalidCommandException($message);
         }
