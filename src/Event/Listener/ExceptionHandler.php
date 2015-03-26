@@ -42,16 +42,12 @@ final class ExceptionHandler implements EventSubscriberInterface
         $exception = $event->getException();
 
         if ($exception instanceof InvalidCommandException) {
-            $message = explode("|", $exception->getMessage());
-
             $event->setResponse(new JsonResponse(
                 [
-                    "error" =>
-                    [
-                        $message[0] => $message[1]
-                    ]
-                ]
-            ), Response::HTTP_BAD_REQUEST);
+                    "error" => $exception->getMessage()
+                ],
+                Response::HTTP_BAD_REQUEST
+            ));
         }
     }
 

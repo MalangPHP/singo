@@ -31,19 +31,21 @@ database:
       namespace: Singo\App\Entities
       path: /App/Entities
 
+# JWT configuration
 jwt:
   secret_key: keep_me_secret
   life_time: 86400
   options:
     header_name: AUTH-HEADER-TOKEN
 
+# firewall configuration
 firewall:
   login:
-    pattern: ^.*$
+    pattern: login
     anonymous: yes
   secured:
-    pattern: login
+    pattern: ^.*$
     jwt:
-      use_forward: yes
-      require_previous_session: no
-      stateless: yes
+      use_forward: 1
+      require_previous_session: 0
+      stateless: 1
