@@ -7,22 +7,23 @@ use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Monolog\Logger;
-use Silex\Provider\SecurityJWTServiceProvider;
-use Silex\Provider\SecurityServiceProvider;
 use Singo\Event\Listener\ExceptionHandler;
 use Singo\Providers\CommandBusServiceProvider;
 use Singo\Providers\ConfigServiceProvider;
 use Singo\Providers\FractalServiceProvider;
+use Singo\Providers\PimpleAwareEventDispatcherServiceProvider;
+use Singo\Providers\UserServiceProvider;
 use Silex\Application as SilexApplication;
+use Silex\Provider\SecurityJWTServiceProvider;
+use Silex\Provider\SecurityServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
 use Silex\Provider\MonologServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\SwiftmailerServiceProvider;
 use Silex\Provider\ValidatorServiceProvider;
-use Singo\Providers\PimpleAwareEventDispatcherServiceProvider;
-use Singo\Providers\UserServiceProvider;
 use Symfony\Component\Validator\Mapping\Factory\LazyLoadingMetadataFactory;
 use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
+use Pimple\ServiceProviderInterface;
 
 /**
  * Class Application
@@ -246,6 +247,21 @@ class Application extends SilexApplication
         $this[$service_id] = $callback;
 
         $this["dispatcher"]->addSubscriberService($service_id, $class);
+    }
+
+    /**
+     * @param callable $service
+     * @param array $config
+     */
+    public function registerServiceProvider(callable $service, array $config)
+    {
+        $service = $service();
+
+        if (! $service instanceof ServiceProviderInterface::class) {
+            throw new \RuntimeException("Service provider must be instance of " . ServiceProviderInterface::class);
+        }
+
+        $this->register($service, $config);
     }
 }
 
