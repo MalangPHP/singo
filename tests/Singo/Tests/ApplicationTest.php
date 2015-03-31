@@ -8,6 +8,7 @@ use Singo\Application;
 use Singo\Tests\Controllers\TestController;
 use Singo\Tests\Event\TestEvent;
 use Singo\Tests\Handlers\GeneralHandler;
+use Singo\Tests\Provider\UserProvider;
 use Singo\Tests\Subscribers\TestSubscriber;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -34,6 +35,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
                 "config.path" => __DIR__ . "/Config/config.yml"
             ]
         );
+
+        $this->app["users"] = function () {
+            return new UserProvider();
+        };
+
         $this->app->init();
     }
 
@@ -146,5 +152,3 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($event->getNick(), "jowy");
     }
 }
-
-// EOF

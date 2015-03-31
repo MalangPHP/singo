@@ -12,7 +12,6 @@ use Silex\Provider\TacticianServiceProvider;
 use Singo\Bus\Middleware\CommandLoggerMiddleware;
 use Singo\Bus\Middleware\CommandValidationMiddleware;
 use Singo\Event\Listener\ExceptionHandler;
-use Singo\Providers\UserServiceProvider;
 use Silex\Application as SilexApplication;
 use Silex\Provider\SecurityJWTServiceProvider;
 use Silex\Provider\SecurityServiceProvider;
@@ -25,7 +24,6 @@ use Silex\Provider\ConfigServiceProvider;
 use Silex\Provider\PimpleAwareEventDispatcherServiceProvider;
 use Symfony\Component\Validator\Mapping\Factory\LazyLoadingMetadataFactory;
 use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
-use Pimple\ServiceProviderInterface;
 
 /**
  * Class Application
@@ -233,9 +231,7 @@ class Application extends SilexApplication
     public function initFirewall()
     {
         if (! isset($this["users"])) {
-            $this["users"] = function () {
-                return new UserServiceProvider();
-            };
+            throw new \RuntimeException("users must be set in container");
         }
 
         $this["security.jwt"] = $this["config"]->get("jwt");
@@ -270,5 +266,3 @@ class Application extends SilexApplication
         $this["dispatcher"]->addSubscriberService($service_id, $class);
     }
 }
-
-// EOF
