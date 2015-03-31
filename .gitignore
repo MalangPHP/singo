@@ -1,9 +1,6 @@
 /vendor
-/src/Resources/Logs/*.log
+tests/Singo/Tests/Resources/Logs/*.log
 /.idea
-
+/coverage
 composer.lock
 .env
-
-tests/_output/*
-tests/_output/*

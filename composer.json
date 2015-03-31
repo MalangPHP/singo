@@ -7,11 +7,13 @@
         "symfony/yaml": "~2.6",
         "silex/silex": "~2.0@dev",
         "dflydev/doctrine-orm-service-provider": "~2.0",
-        "league/tactician": "0.3.*",
         "monolog/monolog": "~1.13",
-        "league/fractal": "0.11.*",
         "symfony/security": "~2.6",
-        "cnam/security-jwt-service-provider": "0.0.6.*"
+        "cnam/security-jwt-service-provider": "~0.0.6.0",
+        "jowy/tactician-service-provider": ">=1.0.2",
+        "jowy/silex-config-service-provider": "~1.0.0",
+        "jowy/silex-pimple-aware-event-dispatcher": "~1.0.0",
+        "jowy/silex-fractal-service-provider": "~1.0.1"
     },
     "license": "MIT",
     "authors": [
