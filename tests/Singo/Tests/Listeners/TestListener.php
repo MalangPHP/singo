@@ -32,5 +32,3 @@ class TestListener implements EventSubscriberInterface
         return $event->getValue();
     }
 }
-
-// EOF

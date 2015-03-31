@@ -61,5 +61,3 @@ final class ExceptionHandler implements EventSubscriberInterface
         ];
     }
 }
-
-// EOF

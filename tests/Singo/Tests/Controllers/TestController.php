@@ -49,5 +49,3 @@ class TestController extends ControllerAbstract
 
     }
 }
-
-// EOF

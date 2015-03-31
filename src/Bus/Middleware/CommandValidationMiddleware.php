@@ -59,5 +59,3 @@ class CommandValidationMiddleware implements Middleware
         return $next($command);
     }
 }
-
-// EOF

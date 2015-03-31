@@ -20,5 +20,3 @@ interface ControllerInterface
      */
     public function __construct(RequestStack $request, Manager $fractal, CommandBus $bus);
 }
-
-// EOF

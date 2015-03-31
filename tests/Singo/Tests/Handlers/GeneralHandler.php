@@ -19,5 +19,3 @@ class GeneralHandler
         return $command->name;
     }
 }
-
-// EOF

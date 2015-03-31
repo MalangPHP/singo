@@ -11,5 +11,3 @@ class InvalidCommandException extends \Exception
 {
 
 }
-
-// EOF

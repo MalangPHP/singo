@@ -42,5 +42,3 @@ class CommandLoggerMiddleware implements Middleware
         return $return_value;
     }
 }
-
-// EOF

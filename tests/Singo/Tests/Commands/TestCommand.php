@@ -18,5 +18,3 @@ class TestCommand
      */
     public $name;
 }
-
-// EOF
