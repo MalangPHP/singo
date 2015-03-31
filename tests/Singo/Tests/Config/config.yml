@@ -19,7 +19,7 @@ mailer:
 database:
   connection:
     driver: pdo_mysql
-    dbname: avent
+    dbname: singo
     user: root
     password: 123
     hostname: localhost
@@ -41,7 +41,7 @@ jwt:
 # firewall configuration
 firewall:
   login:
-    pattern: login
+    pattern: test|command|validate
     anonymous: yes
   secured:
     pattern: ^.*$
