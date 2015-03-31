@@ -7,6 +7,10 @@ use League\Tactician\Command;
 use League\Tactician\Middleware;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Class CommandLoggerMiddleware
+ * @package Singo\Bus\Middleware
+ */
 class CommandLoggerMiddleware implements Middleware
 {
     /**
@@ -25,7 +29,7 @@ class CommandLoggerMiddleware implements Middleware
     /**
      * {@inheritdoc}
      */
-    public function execute(Command $command, callable $next)
+    public function execute($command, callable $next)
     {
         $command_name = get_class($command);
 
