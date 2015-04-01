@@ -4,7 +4,9 @@
 namespace Singo\Tests\Controllers;
 
 use Singo\Contracts\Controller\ControllerAbstract;
+use Singo\Tests\Commands\LoginCommand;
 use Singo\Tests\Commands\TestCommand;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * Class TestController
@@ -44,8 +46,20 @@ class TestController extends ControllerAbstract
     /**
      * return mixed
      */
-    public function eventAction()
+    public function loginAction()
     {
+        $command = new LoginCommand();
+        $command->setUsername("admin");
+        $command->setPassword("singo");
 
+        $token = $this->bus->handle($command);
+
+        return new JsonResponse(
+            [
+                "data" => [
+                    "token" => $token
+                ]
+            ]
+        );
     }
 }

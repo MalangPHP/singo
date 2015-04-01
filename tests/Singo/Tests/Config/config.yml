@@ -4,7 +4,7 @@ common:
     name: singo
     dir: /Resources/Logs
     level: DEBUG
-  debug: 0
+  debug: 1
 
 # mailer configuration
 mailer:
@@ -41,7 +41,7 @@ jwt:
 # firewall configuration
 firewall:
   login:
-    pattern: test|command|validate
+    pattern: test|command|validate|login
     anonymous: yes
   secured:
     pattern: ^.*$

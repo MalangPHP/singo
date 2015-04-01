@@ -8,8 +8,10 @@ use Singo\Application;
 use Singo\Tests\Controllers\TestController;
 use Singo\Tests\Event\TestEvent;
 use Singo\Tests\Handlers\GeneralHandler;
+use Singo\Tests\Handlers\LoginHandler;
 use Singo\Tests\Provider\UserProvider;
 use Singo\Tests\Subscribers\TestSubscriber;
+use Singo\Tests\Commands\LoginCommand;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -44,8 +46,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test route that didn't require authentication
-     * return void
+     * test route that didn't require authentication
      */
     public function testPublicRoute()
     {
@@ -65,8 +66,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test route that require authentication
-     * return void
+     * test route that require authentication
      */
     public function testRestrictedRoute()
     {
@@ -86,8 +86,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test valid command
-     * return void
+     * test valid command
      */
     public function testCommandBus()
     {
@@ -115,6 +114,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals("jowy", $this->app->handle($request)->getContent());
     }
 
+    /**
+     * test command validation middleware
+     */
     public function testCommandValidation()
     {
         $this->app["test.controller"] = function(Container $container) {
@@ -141,6 +143,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertContains("blank", $this->app->handle($request)->getContent());
     }
 
+    /**
+     * test event dispatcher
+     */
     public function testEventDispatcher()
     {
         $this->app->registerSubscriber(TestSubscriber::class, function() {
@@ -150,5 +155,59 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $event = $this->app["dispatcher"]->dispatch(TestEvent::TEST_EVENT, new TestEvent());
 
         $this->assertEquals($event->getNick(), "jowy");
+    }
+
+    /**
+     * test jwt authentication
+     */
+    public function testAuthenticate()
+    {
+        $this->app["test.controller"] = function(Container $container) {
+            return new TestController(
+                $container["request_stack"],
+                $container["fractal.manager"],
+                $container["command.bus"]
+            );
+        };
+
+        $jwt_encoder = $this->app["security.jwt.encoder"];
+
+        $this->app->registerCommands(
+            [
+                LoginCommand::class
+            ],
+            function () use ($jwt_encoder) {
+                return new LoginHandler($jwt_encoder);
+            }
+        );
+
+        $this->app->get("/login", "test.controller:loginAction");
+        $this->app->get("/vip", "test.controller:indexAction");
+
+        $request = Request::create("/login");
+
+        $token = $this->app->handle($request)->getContent();
+
+        // Ensure return token
+        $this->assertContains("data", $token);
+
+        $token = json_decode($token);
+
+        // Create request to restricted area
+        $request =  Request::create("/vip");
+
+        // Fail if no auth header
+        $this->assertEquals("401", $this->app->handle($request)->getStatusCode());
+
+        $request->headers->add(
+            [
+                "AUTH-HEADER-TOKEN" => $token->data->token
+            ]
+        );
+
+        $response = $this->app->handle($request)->getContent();
+
+        // return ok if auth header if present and valid
+        $this->assertEquals("ok", $response);
     }
 }
