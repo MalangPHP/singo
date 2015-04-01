@@ -7,12 +7,11 @@ use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Monolog\Logger;
+use Silex\Provider\FractalServiceProvider;
+use Silex\Provider\TacticianServiceProvider;
+use Singo\Bus\Middleware\CommandLoggerMiddleware;
+use Singo\Bus\Middleware\CommandValidationMiddleware;
 use Singo\Event\Listener\ExceptionHandler;
-use Singo\Providers\CommandBusServiceProvider;
-use Singo\Providers\ConfigServiceProvider;
-use Singo\Providers\FractalServiceProvider;
-use Singo\Providers\PimpleAwareEventDispatcherServiceProvider;
-use Singo\Providers\UserServiceProvider;
 use Silex\Application as SilexApplication;
 use Silex\Provider\SecurityJWTServiceProvider;
 use Silex\Provider\SecurityServiceProvider;
@@ -21,9 +20,10 @@ use Silex\Provider\MonologServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\SwiftmailerServiceProvider;
 use Silex\Provider\ValidatorServiceProvider;
+use Silex\Provider\ConfigServiceProvider;
+use Silex\Provider\PimpleAwareEventDispatcherServiceProvider;
 use Symfony\Component\Validator\Mapping\Factory\LazyLoadingMetadataFactory;
 use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
-use Pimple\ServiceProviderInterface;
 
 /**
  * Class Application
@@ -41,9 +41,15 @@ class Application extends SilexApplication
      */
     public function __construct(array $values = [])
     {
-        define("APP_PATH", dirname(__FILE__));
-        define("PUBLIC_PATH", dirname(__FILE__) . "/../public");
         parent::__construct($values);
+
+        if (! defined("APP_PATH")) {
+            define("APP_PATH", $this["app.path"]);
+        }
+
+        if (! defined("PUBLIC_PATH")) {
+            define("PUBLIC_PATH", $this["app.public.path"]);
+        }
     }
 
     /**
@@ -66,7 +72,7 @@ class Application extends SilexApplication
         /**
          * Silex config
          */
-        $this["debug"] = $this["singo.config"]->get("common/debug");
+        $this["debug"] = $this["config"]->get("common/debug");
 
         /**
          * Save container in static variable
@@ -88,7 +94,7 @@ class Application extends SilexApplication
      */
     public function initConfig()
     {
-        $this->register(new ConfigServiceProvider());
+        $this->register(new ConfigServiceProvider($this["config.path"]));
     }
 
     /**
@@ -97,21 +103,21 @@ class Application extends SilexApplication
      */
     public function initDatabase()
     {
-        $mapping = $this["singo.config"]->get("database/orm/mappings");
+        $mapping = $this["config"]->get("database/orm/mappings");
         $mapping["path"] = APP_PATH . $mapping["path"];
 
         $this->register(
             new DoctrineServiceProvider(),
             [
-                "db.options" => $this["singo.config"]->get("database/connection")
+                "db.options" => $this["config"]->get("database/connection")
             ]
         );
 
         $this->register(
             new DoctrineOrmServiceProvider(),
             [
-                "orm.proxies_dir" => dirname(__FILE__) . $this["singo.config"]->get("database/orm/proxy_dir"),
-                "orm.proxies_namespace" => $this["singo.config"]->get("database/orm/proxy_namespace"),
+                "orm.proxies_dir" => dirname(__FILE__) . $this["config"]->get("database/orm/proxy_dir"),
+                "orm.proxies_namespace" => $this["config"]->get("database/orm/proxy_namespace"),
                 "orm.em.options" => [
                     "mappings" => [
                         $mapping
@@ -128,12 +134,12 @@ class Application extends SilexApplication
     public function initLogger()
     {
         $date = new \DateTime();
-        $log_file = APP_PATH . $this["singo.config"]->get("common/log/dir") . "/{$date->format("Y-m-d")}.log";
+        $log_file = APP_PATH . $this["config"]->get("common/log/dir") . "/{$date->format("Y-m-d")}.log";
         $this->register(
             new MonologServiceProvider(),
             [
                 "monolog.logfile" => $log_file,
-                "monolog.name" => $this["singo.config"]->get("common/log/name"),
+                "monolog.name" => $this["config"]->get("common/log/name"),
                 "monolog.level" => Logger::INFO
             ]
         );
@@ -163,7 +169,7 @@ class Application extends SilexApplication
      */
     public function initMailer()
     {
-        $this["swiftmailer.options"] = $this["singo.config"]->get("mailer");
+        $this["swiftmailer.options"] = $this["config"]->get("mailer");
         $this->register(new SwiftmailerServiceProvider());
     }
 
@@ -173,7 +179,7 @@ class Application extends SilexApplication
      */
     public function initCommandBus()
     {
-        $this->register(new CommandBusServiceProvider());
+        $this->register(new TacticianServiceProvider());
     }
 
     /**
@@ -182,7 +188,17 @@ class Application extends SilexApplication
      */
     public function initControllerService()
     {
-        $this->register(new ServiceControllerServiceProvider());
+        $this->register(
+            new ServiceControllerServiceProvider(),
+            [
+                "tactician.inflector" => "class_name",
+                "tactician.middlewares" =>
+                [
+                    new CommandLoggerMiddleware($this["monolog"]),
+                    new CommandValidationMiddleware($this["validator"], $this["monolog"])
+                ]
+            ]
+        );
     }
 
     /**
@@ -214,13 +230,14 @@ class Application extends SilexApplication
      */
     public function initFirewall()
     {
-        $this["users"] = function () {
-            return new UserServiceProvider();
-        };
-        $this["security.jwt"] = $this["singo.config"]->get("jwt");
+        if (! isset($this["users"])) {
+            throw new \RuntimeException("users must be set in container");
+        }
+
+        $this["security.jwt"] = $this["config"]->get("jwt");
         $this->register(new SecurityJWTServiceProvider());
         $this->register(new SecurityServiceProvider());
-        $this["security.firewalls"] = $this["singo.config"]->get("firewall");
+        $this["security.firewalls"] = $this["config"]->get("firewall");
     }
 
     /**
@@ -248,21 +265,4 @@ class Application extends SilexApplication
 
         $this["dispatcher"]->addSubscriberService($service_id, $class);
     }
-
-    /**
-     * @param callable $service
-     * @param array $config
-     */
-    public function registerServiceProvider(callable $service, array $config)
-    {
-        $service = $service();
-
-        if (! $service instanceof ServiceProviderInterface::class) {
-            throw new \RuntimeException("Service provider must be instance of " . ServiceProviderInterface::class);
-        }
-
-        $this->register($service, $config);
-    }
 }
-
-// EOF

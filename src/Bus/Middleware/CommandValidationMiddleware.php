@@ -38,7 +38,7 @@ class CommandValidationMiddleware implements Middleware
     /**
      * {@inheritdoc}
      */
-    public function execute(Command $command, callable $next)
+    public function execute($command, callable $next)
     {
         $command_name = get_class($command);
 
@@ -59,5 +59,3 @@ class CommandValidationMiddleware implements Middleware
         return $next($command);
     }
 }
-
-// EOF

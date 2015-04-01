@@ -35,7 +35,7 @@ final class ExceptionHandler implements EventSubscriberInterface
      */
     public function onSilexError(GetResponseForExceptionEvent $event)
     {
-        if ($this->container["singo.config"]->get("common/debug")) {
+        if ($this->container["config"]->get("common/debug")) {
             return;
         }
 
@@ -61,5 +61,3 @@ final class ExceptionHandler implements EventSubscriberInterface
         ];
     }
 }
-
-// EOF

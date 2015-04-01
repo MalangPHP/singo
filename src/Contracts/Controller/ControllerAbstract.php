@@ -38,5 +38,3 @@ abstract class ControllerAbstract implements ControllerInterface
         $this->bus = $bus;
     }
 }
-
-// EOF
