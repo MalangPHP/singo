@@ -1,6 +1,6 @@
 ## Singo
 
-Singo adalah sebuah applikasi skeleton berbasis micro framework [Silex](http://silex.sensiolabs.org/) yang bertujuan untuk mempermudah developer untuk membuat HTTP REST based API.
+Singo is a skeleton apps based on [Silex](http://silex.sensiolabs.org/) micro framework to facilitate developers to create HTTP REST based API.
 
 ## Technology Stack
 
@@ -9,16 +9,16 @@ Singo adalah sebuah applikasi skeleton berbasis micro framework [Silex](http://s
 * [Swiftmailer](http://swiftmailer.org/) - Email Interface
 * [Fractal](http://fractal.thephpleague.com/) - Manipulate Complex API response
 
-## Arsitektur Aplikasi
+## Application Architecture
 
-![Arsitektur](http://i.imgur.com/WP8qXpl.png)
+![Architecture](http://i.imgur.com/WP8qXpl.png)
 
-Arsitektur Singo menggunakan design pattern [Command](http://sourcemaking.com/design_patterns/command) yang bertujuan agar code yang anda buat bisa digunakan oleh interface lain (CLI, Web, API, dll). Dengan memanfaatkan `Handler Middleware` anda bisa memanipulasi `Command` object sebelum diproses oleh `Handler`. Contoh yang bisa anda lakukan dengan `Handler Middlerware` adalah validasi `Command`, logging event, dll.
+Singo's architecture use [Command](http://sourcemaking.com/design_patterns/command) design pattern to create re-usable code (can be used for another interface e.g CLI, Web, API, etc). By using `Handler Middleware` you can manipulate `Command` object before processed by `Handler` e.g. you can do `Command` validation with `Handler Middleware`.
 
-## Cara Penggunaan
+## How to use
 
-### Buat Controller
-Buat controller didalam folder `src/App/Controllers` dengan kelas yang extend `Singo\Contracts\Controller\ControllerAbstract`. Berikut contoh controller yang memenuhi syarat.
+### Create controller
+Create a controller inside `src/App/Controllers` folder with a class extend `Singo\Contracts\Controller\ControllerAbstract`. Here is an example of qualify controller:
 
 ~~~php
 <?php
@@ -58,10 +58,10 @@ class TestController extends ControllerAbstract
 // EOF
 ~~~
 
-Dalam suatu kelas `controller` diperbolehkan untuk membuat beberapa `method`.
+It is allowed to create `method` within a `controller` class.
 
-### Buat Command
-Buat kelas `Command` didalam folder `src/App/Commands` dengan syarat kelas yang anda buat harus mengimplementasi interface `Singo\Contracts\Bus\CommandInterface`. Di dalam kelas `Command` hanya berisi sebuah pesan yang nanti akan diproses oleh `Handler`. Berikut contoh kelas `Command` yang memenuhi syarat.
+### Create command
+Create `Command` class inside `src/App/Commands` folder which require you to implement `Singo\Contracts\Bus\CommandInterface` interface. Within `Command` class, there is only messages which will be processed by `Handler`. Here is an example of qualify `Command` class:
 
 ~~~php
 <?php
@@ -103,10 +103,10 @@ class TestCommand implements CommandInterface
 // EOF
 ~~~
 
-Anda juga dapat menambahkan validasi property dengan cara menambahkan annotation pada property. Untuk refrensi validasi dengan menggunakan  annotation dapat dilihat [disini](http://symfony.com/doc/current/book/validation.html#constraints).
+You can also add property validation by add annotation on property. You can check it [here](http://symfony.com/doc/current/book/validation.html#constraints) for reference.
 
-### Buat Command Handler
-`Command Handler` berfungsi untuk mengolah `Command` yang anda kirimkan melalui `Controller`. Syarat untuk membuat `Command Handler` adalah mengimplementasi `Singo\Contracts\Bus\HandlerInterface` dan mempunyai name method `handlerNamaCommand`. Jadi semisal nama kelas `Command` kita adalah `UserRegistrationCommand`maka nama method untuk `Command Handler` kita harus `handleUserRegistrationCommand`. Berikut contoh `Command Handler` yang memenuhi syarat.
+### Create command handler
+`Command Handler` is used to process `Command` that you pass via `Controller`. To create `Command Handler`, you must implement `Singo\Contracts\Bus\HandlerInterface` and must have `handle<Command_name>` method. So, if we have a `Command` class called `UserRegistrationCommand`, then we need to create method for `Command Handler` with `handleUserRegistrationCommand`. Here is a qualify example:
 
 ~~~php
 <?php
@@ -140,18 +140,18 @@ class TestHandler implements HandlerInterface
 // EOF
 ~~~
 
-### Register Controller dan Command
-Langkah terakhir adalah meregistrasikan `Controller` dan `Command` anda didalam file `bootstrap.php` yang ada difolder `public/bootstrap.php`. Berikut contoh code untuk mendaftarkan `Controller` dan `Command`
+### Register controller and command
+Last step is register your `Controller` and `Command` to our bootstrap on `public/bootstrap.php` folder. Here is an example to register your `Controller` and `Command`:
 
 ~~~php
 <?php
 
-// Lakukan initialisasi
+// Initialize
 $app->init();
 
 /**
-* Register command dan handler
-* 1 kelas handler bisa menangani beberapa command
+* Register command and handler.
+* One class handler can handle multiple command
 */
 $app->registerCommands(
     [\Singo\App\Commands\TestCommand::class],
@@ -172,14 +172,13 @@ $app["test.controller"] = function(\Pimple\Container $container) {
 };
 
 /**
-* Buat routing nya
+* For routing
 * /
 $app->get("/", "test.controller:indexAction");
 ~~~
 
 ### Register Event
-
-Pertama anda harus membuat `SubscriberClass` yang mengimplementasi `Symfony\Component\EventDispatcher\EventSubscriberInterface`. Berikut contoh `SubscriberClass`
+First, you need to create `SubscriberClass` class which implement `Symfony\Component\EventDispatcher\EventSubscriberInterface`. Here is an example of `SubscriberClass`:
 
 ~~~php
 <?php
@@ -251,7 +250,7 @@ final class ExceptionHandler implements EventSubscriberInterface
 // EOF
 ~~~
 
-Kemudian daftarkan `SubscriberClass` kedalam applikasi pada saat boorstraping.
+Then, register `SubscriberClass` to our application while bootstrapping.
 
 ~~~php
 $app->registerSubscriber(
@@ -262,4 +261,4 @@ $app->registerSubscriber(
 );
 ~~~
 
-Untuk dokumentasi lebih lanjut silahkan baca tautan [berikut](http://symfony.com/doc/current/components/event_dispatcher/introduction.html).
+For further documentation about event dispatcher , please read it [here](http://symfony.com/doc/current/components/event_dispatcher/introduction.html).
