@@ -103,26 +103,18 @@ class Application extends SilexApplication
      */
     public function initDatabase()
     {
-        $mapping = $this["config"]->get("database/orm/mappings");
-        $mapping["path"] = APP_PATH . $mapping["path"];
-
         $this->register(
-            new DoctrineServiceProvider(),
+            new DoctrineServiceProvider,
             [
-                "db.options" => $this["config"]->get("database/connection")
+                "dbs.options" => $this["config"]->get("database/connection/orm")
             ]
         );
-
         $this->register(
             new DoctrineOrmServiceProvider(),
             [
                 "orm.proxies_dir" => dirname(__FILE__) . $this["config"]->get("database/orm/proxy_dir"),
                 "orm.proxies_namespace" => $this["config"]->get("database/orm/proxy_namespace"),
-                "orm.em.options" => [
-                    "mappings" => [
-                        $mapping
-                    ]
-                ]
+                "orm.ems.options" => $this["config"]->get("database/ems")
             ]
         );
     }
