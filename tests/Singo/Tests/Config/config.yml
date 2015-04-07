@@ -18,18 +18,37 @@ mailer:
 # database & orm configuration
 database:
   connection:
-    driver: pdo_mysql
-    dbname: singo
-    user: root
-    password: 123
-    hostname: localhost
+    orm:
+      mysql_read:
+        driver: pdo_mysql
+        dbname: singo
+        user: root
+        password: 123
+        host: localhost
+      mysql_write:
+        driver: pdo_mysql
+        dbname: singo
+        user: root
+        password: 123
+        host: localhost
+  ems:
+    mysql_read:
+      connection: mysql_read
+      mappings:
+        -
+          type: annotation
+          namespace: Singo\App\Entities
+          path: /App/Entities
+    mysql_write:
+          connection: mysql_write
+          mappings:
+            -
+              type: annotation
+              namespace: Singo\App\Entities
+              path: /App/Entities
   orm:
     proxy_dir: /Resources/Orm/Proxy
     proxy_namespace: Singo\Resources\Orm\Proxy
-    mappings:
-      type: annotation
-      namespace: Singo\App\Entities
-      path: /App/Entities
 
 # JWT configuration
 jwt:

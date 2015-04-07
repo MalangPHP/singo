@@ -3,6 +3,7 @@
 
 namespace Singo\Tests;
 
+use Doctrine\ORM\EntityManager;
 use Pimple\Container;
 use Singo\Application;
 use Singo\Tests\Controllers\TestController;
@@ -209,5 +210,17 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         // return ok if auth header if present and valid
         $this->assertEquals("ok", $response);
+    }
+
+    /**
+     * test multiple entity manager instance
+     */
+    public function testMultipleDatabaseInstance()
+    {
+        $mysql_read = $this->app["orm.ems"]["mysql_read"];
+        $mysql_write = $this->app["orm.ems"]["mysql_write"];
+
+        $this->assertInstanceOf(EntityManager::class, $mysql_read);
+        $this->assertInstanceOf(EntityManager::class, $mysql_write);
     }
 }

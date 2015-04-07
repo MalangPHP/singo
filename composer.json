@@ -4,16 +4,25 @@
     "require": {
         "symfony/validator": "~2.6",
         "swiftmailer/swiftmailer": "~5.3",
-        "symfony/yaml": "~2.6",
         "silex/silex": "~2.0@dev",
-        "dflydev/doctrine-orm-service-provider": "~2.0",
         "monolog/monolog": "~1.13",
         "symfony/security": "~2.6",
         "cnam/security-jwt-service-provider": "~0.0.6.0",
-        "jowy/tactician-service-provider": ">=1.0.2",
+        "jowy/tactician-service-provider": "~1.0.4",
         "jowy/silex-config-service-provider": "~1.0.0",
         "jowy/silex-pimple-aware-event-dispatcher": "~1.0.0",
         "jowy/silex-fractal-service-provider": "~1.0.1"
+    },
+    "require-dev": {
+        "symfony/yaml": "~2.6",
+        "dflydev/doctrine-orm-service-provider": "~2.0",
+        "saxulum/saxulum-doctrine-mongodb-odm-provider": "~2.0",
+        "doctrine/mongodb-odm": "1.*@beta"
+    },
+    "suggest" : {
+        "dflydev/doctrine-orm-service-provider" : "If you use doctrine ORM in your apps",
+        "saxulum/saxulum-doctrine-mongodb-odm-provider": "If you use doctrine ODM in your apps",
+        "symfony/yaml": "if you use yaml based config"
     },
     "license": "MIT",
     "authors": [
