@@ -112,7 +112,7 @@ class Application extends SilexApplication
         $this->register(
             new DoctrineOrmServiceProvider(),
             [
-                "orm.proxies_dir" => dirname(__FILE__) . $this["config"]->get("database/orm/proxy_dir"),
+                "orm.proxies_dir" => APP_PATH. $this["config"]->get("database/orm/proxy_dir"),
                 "orm.proxies_namespace" => $this["config"]->get("database/orm/proxy_namespace"),
                 "orm.ems.options" => $this["config"]->get("database/ems")
             ]
