@@ -7,6 +7,8 @@ use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Monolog\Logger;
+use Saxulum\DoctrineMongoDb\Provider\DoctrineMongoDbProvider;
+use Saxulum\DoctrineMongoDbOdm\Provider\DoctrineMongoDbOdmProvider;
 use Silex\Provider\FractalServiceProvider;
 use Silex\Provider\TacticianServiceProvider;
 use Singo\Bus\Middleware\CommandLoggerMiddleware;
@@ -103,6 +105,27 @@ class Application extends SilexApplication
      */
     public function initDatabase()
     {
+        if (extension_loaded("mongo")
+            && ! empty($this["config"]->get("database/connection/odm"))
+        ) {
+            $this->register(
+                new DoctrineMongoDbProvider,
+                [
+                    "mongodb.options" => $this["config"]->get("database/connection/odm")
+                ]
+            );
+
+            $this->register(
+                new DoctrineMongoDbOdmProvider,
+                [
+                    "mongodbodm.proxies_dir" => APP_PATH. $this["config"]->get("database/odm/proxies_dir"),
+                    "mongodbodm.proxies_namespace" => $this["config"]->get("database/odm/proxies_namespace"),
+                    "mongodbodm.auto_generate_proxies" => $this["config"]->get("database/odm/auto_generate_proxies"),
+                    "mongodbodm.dms.options" => $this["config"]->get("database/connection/odm")
+                ]
+            );
+        }
+
         $this->register(
             new DoctrineServiceProvider,
             [
@@ -112,8 +135,8 @@ class Application extends SilexApplication
         $this->register(
             new DoctrineOrmServiceProvider(),
             [
-                "orm.proxies_dir" => APP_PATH. $this["config"]->get("database/orm/proxy_dir"),
-                "orm.proxies_namespace" => $this["config"]->get("database/orm/proxy_namespace"),
+                "orm.proxies_dir" => APP_PATH. $this["config"]->get("database/orm/proxies_dir"),
+                "orm.proxies_namespace" => $this["config"]->get("database/orm/proxies_namespace"),
                 "orm.ems.options" => $this["config"]->get("database/ems")
             ]
         );
