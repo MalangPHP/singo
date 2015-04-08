@@ -3,6 +3,7 @@
 
 namespace Singo\Tests;
 
+use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
 use Pimple\Container;
 use Singo\Application;
@@ -215,12 +216,21 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     /**
      * test multiple entity manager instance
      */
-    public function testMultipleDatabaseInstance()
+    public function testMultipleOrmInstance()
     {
         $mysql_read = $this->app["orm.ems"]["mysql_read"];
         $mysql_write = $this->app["orm.ems"]["mysql_write"];
 
         $this->assertInstanceOf(EntityManager::class, $mysql_read);
         $this->assertInstanceOf(EntityManager::class, $mysql_write);
+    }
+
+    public function testMultipleOdmInstance()
+    {
+        $mongo_read = $this->app["mongodbodm.dms"]["mongo_read"];
+        $mongo_write = $this->app["mongodbodm.dms"]["mongo_write"];
+
+        $this->assertInstanceOf(DocumentManager::class, $mongo_read);
+        $this->assertInstanceOf(DocumentManager::class, $mongo_write);
     }
 }

@@ -15,7 +15,7 @@ mailer:
   encryption: null
   auth_mode: null
 
-# database & orm configuration
+# database configuration
 database:
   connection:
     orm:
@@ -31,6 +31,19 @@ database:
         user: root
         password: 123
         host: localhost
+    odm:
+      mongo_read:
+        server: mongodb://localhost:27017
+        options:
+          username: root
+          password: root
+          db: singo
+      mongo_write:
+        server: mongodb://localhost:27017
+        options:
+          username: root
+          password: root
+          db: singo
   ems:
     mysql_read:
       connection: mysql_read
@@ -47,8 +60,27 @@ database:
               namespace: Singo\App\Entities
               path: /App/Entities
   orm:
-    proxy_dir: /Resources/Orm/Proxy
-    proxy_namespace: Singo\Resources\Orm\Proxy
+    proxies_dir: /Resources/Orm/Proxy
+    proxies_namespace: Singo\Resources\Orm\Proxy
+  dms:
+    mongo_read:
+      connection: mongo_read
+      mappings:
+        -
+          type: annotation
+          namespace: Singo\App\Entities
+          path: /App/Entities
+    mongo_write:
+      connection: mongo_write
+      mappings:
+        -
+          type: annotation
+          namespace: Singo\App\Entities
+          path: /App/Entities
+  odm:
+    proxies_dir : /Resources/Orm/Proxy
+    proxies_namespace: Singo\Resources\Orm\Proxy
+    auto_generate_proxies: 0
 
 # JWT configuration
 jwt:
