@@ -227,10 +227,15 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function testMultipleOdmInstance()
     {
-        $mongo_read = $this->app["mongodbodm.dms"]["mongo_read"];
-        $mongo_write = $this->app["mongodbodm.dms"]["mongo_write"];
+        if (PHP_VERSION_ID < 70000
+            && ! defined("HHVM_VERSION")
+            && extension_loaded("mongo")
+        ) {
+            $mongo_read = $this->app["mongodbodm.dms"]["mongo_read"];
+            $mongo_write = $this->app["mongodbodm.dms"]["mongo_write"];
 
-        $this->assertInstanceOf(DocumentManager::class, $mongo_read);
-        $this->assertInstanceOf(DocumentManager::class, $mongo_write);
+            $this->assertInstanceOf(DocumentManager::class, $mongo_read);
+            $this->assertInstanceOf(DocumentManager::class, $mongo_write);
+        }
     }
 }

@@ -107,6 +107,8 @@ class Application extends SilexApplication
     {
         if (extension_loaded("mongo")
             && ! empty($this["config"]->get("database/connection/odm"))
+            && PHP_VERSION_ID < 70000
+            && ! defined("HHVM_VERSION")
         ) {
             $this->register(
                 new DoctrineMongoDbProvider,
