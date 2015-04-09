@@ -15,9 +15,7 @@
     },
     "require-dev": {
         "symfony/yaml": "~2.6",
-        "dflydev/doctrine-orm-service-provider": "~2.0",
-        "saxulum/saxulum-doctrine-mongodb-odm-provider": "~2.0",
-        "doctrine/mongodb-odm": "1.*@beta"
+        "dflydev/doctrine-orm-service-provider": "~2.0"
     },
     "suggest" : {
         "dflydev/doctrine-orm-service-provider" : "If you use doctrine ORM in your apps",
