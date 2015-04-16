@@ -3,7 +3,6 @@
 
 namespace Singo\Bus\Middleware;
 
-use League\Tactician\Command;
 use League\Tactician\Middleware;
 use Psr\Log\LoggerInterface;
 

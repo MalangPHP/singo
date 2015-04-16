@@ -3,7 +3,6 @@
 
 namespace Singo\Bus\Middleware;
 
-use League\Tactician\Command;
 use League\Tactician\Middleware;
 use Psr\Log\LoggerInterface;
 use Singo\Bus\Exception\InvalidCommandException;
@@ -26,10 +25,10 @@ class CommandValidationMiddleware implements Middleware
     private $logger;
 
     /**
-     * @param Validator $validator
+     * @param Validator\ValidatorInterface $validator
      * @param LoggerInterface $logger
      */
-    public function __construct(Validator $validator, LoggerInterface $logger)
+    public function __construct(Validator\ValidatorInterface $validator, LoggerInterface $logger)
     {
         $this->validator = $validator;
         $this->logger = $logger;
