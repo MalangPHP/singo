@@ -6,6 +6,7 @@ namespace Singo\Tests;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
 use Pimple\Container;
+use Silex\Provider\CacheServiceProvider;
 use Singo\Application;
 use Singo\Tests\Controllers\TestController;
 use Singo\Tests\Event\TestEvent;
@@ -43,8 +44,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->app["users"] = function () {
             return new UserProvider();
         };
-
-        $this->app->init();
     }
 
     /**
@@ -52,6 +51,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testPublicRoute()
     {
+        $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
                 $container["request_stack"],
@@ -72,6 +72,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testRestrictedRoute()
     {
+        $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
                 $container["request_stack"],
@@ -92,6 +93,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testCommandBus()
     {
+        $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
                 $container["request_stack"],
@@ -121,6 +123,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testCommandValidation()
     {
+        $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
                 $container["request_stack"],
@@ -150,6 +153,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testEventDispatcher()
     {
+        $this->app->init();
         $this->app->registerSubscriber(TestSubscriber::class, function() {
             return new TestSubscriber();
         });
@@ -164,6 +168,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testAuthenticate()
     {
+        $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
                 $container["request_stack"],
@@ -218,6 +223,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testMultipleOrmInstance()
     {
+        $this->app->init();
         $mysql_read = $this->app["orm.ems"]["mysql_read"];
         $mysql_write = $this->app["orm.ems"]["mysql_write"];
 
@@ -227,6 +233,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function testMultipleOdmInstance()
     {
+        $this->app->init();
         if (PHP_VERSION_ID < 70000
             && ! defined("HHVM_VERSION")
             && extension_loaded("mongo")
@@ -237,5 +244,31 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             $this->assertInstanceOf(DocumentManager::class, $mongo_read);
             $this->assertInstanceOf(DocumentManager::class, $mongo_write);
         }
+    }
+
+    public function testCacheConfig()
+    {
+        $this->app->register(
+            new CacheServiceProvider(),
+            [
+                "cache.driver"  => "array",
+                "cache.options" => [
+                    "namespace" => "singo"
+                ],
+                "config.cache.lifetime" => 300
+            ]
+        );
+
+        $this->app->init();
+
+        $config = $this->app["config"];
+        $cached_config = $this->app["config"];
+
+        $this->assertEquals($config, $cached_config);
+
+        $log_name = $this->app["config"]->get("common/log/name");
+        $cached_log_name = $this->app["config"]->get("common/log/name");
+
+        $this->assertEquals($log_name, $cached_log_name);
     }
 }

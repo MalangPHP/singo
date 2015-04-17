@@ -5,7 +5,7 @@ namespace Singo;
 
 use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\AnnotationRegistry;
+use Doctrine\Common\Cache\Cache;
 use Monolog\Logger;
 use Saxulum\DoctrineMongoDb\Provider\DoctrineMongoDbProvider;
 use Saxulum\DoctrineMongoDbOdm\Provider\DoctrineMongoDbOdmProvider;
@@ -24,6 +24,7 @@ use Silex\Provider\SwiftmailerServiceProvider;
 use Silex\Provider\ValidatorServiceProvider;
 use Silex\Provider\ConfigServiceProvider;
 use Silex\Provider\PimpleAwareEventDispatcherServiceProvider;
+use Symfony\Component\Validator\Mapping\Cache\DoctrineCache;
 use Symfony\Component\Validator\Mapping\Factory\LazyLoadingMetadataFactory;
 use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
 
@@ -170,13 +171,13 @@ class Application extends SilexApplication
     {
         $this->register(new ValidatorServiceProvider());
         $this["validator.mapping.class_metadata_factory"] = function () {
-            foreach (spl_autoload_functions() as $fn) {
-                AnnotationRegistry::registerLoader($fn);
-            }
-
             $reader = new AnnotationReader();
             $loader = new AnnotationLoader($reader);
-            return new LazyLoadingMetadataFactory($loader);
+
+            $cache = $this->offsetExists("cache.factory") && $this["cache.factory"] instanceof Cache
+                ? new DoctrineCache($this["cache.factory"]) : null;
+
+            return new LazyLoadingMetadataFactory($loader, $cache);
         };
     }
 
