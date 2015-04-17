@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Validator;
 class CommandValidationMiddleware implements Middleware
 {
     /**
-     * @var Validator
+     * @var Validator\ValidatorInterface
      */
     private $validator;
 

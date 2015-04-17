@@ -5,7 +5,6 @@ namespace Singo;
 
 use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Cache\Cache;
 use Monolog\Logger;
 use Saxulum\DoctrineMongoDb\Provider\DoctrineMongoDbProvider;
