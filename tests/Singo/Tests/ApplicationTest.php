@@ -15,6 +15,7 @@ use Singo\Tests\Provider\UserProvider;
 use Singo\Tests\Subscribers\TestSubscriber;
 use Singo\Tests\Commands\LoginCommand;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class ApplicationTest
@@ -264,5 +265,22 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $cached_log_name = $this->app["config"]->get("common/log/name");
 
         $this->assertEquals($log_name, $cached_log_name);
+    }
+
+    public function testStackMiddleware()
+    {
+        $this->app->init();
+
+        $this->app->get("/", function () {
+            return new Response("hello from controller");
+        });
+
+        $this->app->registerStackMiddleware("Singo\\Tests\\Middleware\\TestMiddleware");
+
+        $app = $this->app->builder->resolve($this->app);
+
+        $response = $app->handle(Request::create("/"));
+
+        $this->assertEquals($response->getContent(), "hello from middleware");
     }
 }
