@@ -188,7 +188,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = Request::create("/login");
 
-        $token = $this->app->handle($request)->getContent();
+        $app = $this->app->builder->resolve($this->app);
+
+        $token = $app->handle($request)->getContent();
 
         // Ensure return token
         $this->assertContains("data", $token);
@@ -199,7 +201,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $request =  Request::create("/vip");
 
         // Fail if no auth header
-        $this->assertEquals("401", $this->app->handle($request)->getStatusCode());
+        $this->assertEquals("401", $app->handle($request)->getStatusCode());
 
         $request->headers->add(
             [
@@ -207,7 +209,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $response = $this->app->handle($request)->getContent();
+        $response = $app->handle($request)->getContent();
 
         // return ok if auth header if present and valid
         $this->assertEquals("ok", $response);
