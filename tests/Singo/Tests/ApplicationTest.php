@@ -3,7 +3,6 @@
 
 namespace Singo\Tests;
 
-use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
 use Pimple\Container;
 use Silex\Provider\CacheServiceProvider;
@@ -37,7 +36,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             [
                 "app.path" => __DIR__,
                 "app.public.path" => __DIR__,
-                "config.path" => __DIR__ . "/Config/config.yml"
+                "config.path" => __DIR__ . "/Config/config.yml",
+                "config.cache.lifetime" => 300,
+                "cache.driver" => "array",
+                "cache.options" => [
+                    "namespace" => "singo"
+                ]
             ]
         );
 
@@ -54,8 +58,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
-                $container["request_stack"],
-                $container["fractal.manager"],
                 $container["command.bus"]
             );
         };
@@ -75,8 +77,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
-                $container["request_stack"],
-                $container["fractal.manager"],
                 $container["command.bus"]
             );
         };
@@ -96,8 +96,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
-                $container["request_stack"],
-                $container["fractal.manager"],
                 $container["command.bus"]
             );
         };
@@ -126,8 +124,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
-                $container["request_stack"],
-                $container["fractal.manager"],
                 $container["command.bus"]
             );
         };
@@ -171,8 +167,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
-                $container["request_stack"],
-                $container["fractal.manager"],
                 $container["command.bus"]
             );
         };
