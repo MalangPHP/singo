@@ -11,7 +11,6 @@
         "jowy/tactician-service-provider": "~1.0.4",
         "jowy/silex-config-service-provider": "~1.1.1",
         "jowy/silex-pimple-aware-event-dispatcher": "~1.0.0",
-        "jowy/silex-fractal-service-provider": "~1.0.1",
         "stack/builder": "~1.0",
         "ddesrosiers/silex-annotation-provider": "dev-master"
     },
