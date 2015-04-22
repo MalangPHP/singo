@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Singo\Bus\Middleware;
 
 use League\Tactician\Middleware;
