@@ -1,11 +1,8 @@
 <?php
 
-
 namespace Singo\Contracts\Controller;
 
-use League\Fractal\Manager;
 use League\Tactician\CommandBus;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Interface ControllerInterface
@@ -14,9 +11,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 interface ControllerInterface
 {
     /**
-     * @param RequestStack $request
-     * @param Manager $fractal
      * @param CommandBus $bus
      */
-    public function __construct(RequestStack $request, Manager $fractal, CommandBus $bus);
+    public function __construct(CommandBus $bus);
 }

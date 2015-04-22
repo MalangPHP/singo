@@ -1,32 +1,22 @@
 <?php
 
-
 namespace Singo;
 
-use Dflydev\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Cache\Cache;
-use Monolog\Logger;
-use Saxulum\DoctrineMongoDb\Provider\DoctrineMongoDbProvider;
-use Saxulum\DoctrineMongoDbOdm\Provider\DoctrineMongoDbOdmProvider;
-use Silex\Provider\FractalServiceProvider;
-use Silex\Provider\TacticianServiceProvider;
-use Singo\Bus\Middleware\CommandLoggerMiddleware;
-use Singo\Bus\Middleware\CommandValidationMiddleware;
-use Singo\Event\Listener\ExceptionHandler;
 use Silex\Application as SilexApplication;
-use Silex\Provider\SecurityJWTServiceProvider;
-use Silex\Provider\SecurityServiceProvider;
-use Silex\Provider\DoctrineServiceProvider;
-use Silex\Provider\MonologServiceProvider;
+use Silex\Provider\CacheServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
-use Silex\Provider\SwiftmailerServiceProvider;
-use Silex\Provider\ValidatorServiceProvider;
-use Silex\Provider\ConfigServiceProvider;
-use Silex\Provider\PimpleAwareEventDispatcherServiceProvider;
-use Symfony\Component\Validator\Mapping\Cache\DoctrineCache;
-use Symfony\Component\Validator\Mapping\Factory\LazyLoadingMetadataFactory;
-use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
+use Singo\Contracts\Module\ModuleInterface;
+use Singo\Provider\AnnotationRouting;
+use Singo\Provider\CommandBus;
+use Singo\Provider\Config;
+use Singo\Provider\ContainerAwareEventDispatcher;
+use Singo\Provider\Firewall;
+use Singo\Provider\Logger;
+use Singo\Provider\Mailer;
+use Singo\Provider\Orm;
+use Singo\Provider\Validator;
+use Stack\Builder;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class Application
@@ -38,6 +28,11 @@ class Application extends SilexApplication
      * @var Application
      */
     public static $container;
+
+    /**
+     * @var Builder
+     */
+    public $builder;
 
     /**
      * @param array $values
@@ -53,6 +48,30 @@ class Application extends SilexApplication
         if (! defined("PUBLIC_PATH")) {
             define("PUBLIC_PATH", $this["app.public.path"]);
         }
+
+        $this->builder = new Builder();
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function run(Request $request = null)
+    {
+        /**
+         * resolve stack middleware for our apps
+         */
+        $app = $this->builder->resolve($this);
+
+        /**
+         * override current apps with stacked http kernel
+         */
+        if ($request === null) {
+            $request =  Request::createFromGlobals();
+        }
+
+        $response = $app->handle($request);
+        $response->send();
+        $this->terminate($request, $response);
     }
 
     /**
@@ -60,202 +79,77 @@ class Application extends SilexApplication
      */
     public function init()
     {
-        $this->initPimpleAwareEventDispatcher();
-        $this->initConfig();
-        $this->initLogger();
-        $this->initDatabase();
-        $this->initValidator();
-        $this->initMailer();
-        $this->initFirewall();
-        $this->initCommandBus();
-        $this->initFractal();
-        $this->initDefaultSubscribers();
-        $this->initControllerService();
+        /**
+         * container aware event dispatcher
+         */
+        $this->register(new ContainerAwareEventDispatcher());
 
         /**
-         * Silex config
+         * cache
          */
-        $this["debug"] = $this["config"]->get("common/debug");
+        $this->register(new CacheServiceProvider());
 
         /**
-         * Save container in static variable
+         * configuration
          */
-        self::$container = $this;
-    }
+        $this->register(new Config());
 
-    /**
-     * return void
-     */
-    public function initPimpleAwareEventDispatcher()
-    {
-        $this->register(new PimpleAwareEventDispatcherServiceProvider());
-    }
+        /**
+         * logger
+         */
+        $this->register(new Logger());
 
-    /**
-     * initialize application configuration
-     * return void
-     */
-    public function initConfig()
-    {
-        $this->register(new ConfigServiceProvider($this["config.path"]));
-    }
+        /**
+         * doctrine orm
+         */
+        $this->register(new Orm());
 
-    /**
-     * initialize doctrine orm and dbal
-     * return void
-     */
-    public function initDatabase()
-    {
-        if (extension_loaded("mongo")
-            && ! empty($this["config"]->get("database/connection/odm"))
-            && PHP_VERSION_ID < 70000
-            && ! defined("HHVM_VERSION")
-        ) {
-            $this->register(
-                new DoctrineMongoDbProvider,
-                [
-                    "mongodb.options" => $this["config"]->get("database/connection/odm")
-                ]
-            );
+        /**
+         * validator
+         */
+        $this->register(new Validator());
 
-            $this->register(
-                new DoctrineMongoDbOdmProvider,
-                [
-                    "mongodbodm.proxies_dir" => APP_PATH. $this["config"]->get("database/odm/proxies_dir"),
-                    "mongodbodm.proxies_namespace" => $this["config"]->get("database/odm/proxies_namespace"),
-                    "mongodbodm.auto_generate_proxies" => $this["config"]->get("database/odm/auto_generate_proxies"),
-                    "mongodbodm.dms.options" => $this["config"]->get("database/connection/odm")
-                ]
-            );
-        }
+        /**
+         * mailer
+         */
+        $this->register(new Mailer());
 
-        $this->register(
-            new DoctrineServiceProvider,
-            [
-                "dbs.options" => $this["config"]->get("database/connection/orm")
-            ]
-        );
-        $this->register(
-            new DoctrineOrmServiceProvider(),
-            [
-                "orm.proxies_dir" => APP_PATH. $this["config"]->get("database/orm/proxies_dir"),
-                "orm.proxies_namespace" => $this["config"]->get("database/orm/proxies_namespace"),
-                "orm.ems.options" => $this["config"]->get("database/ems")
-            ]
-        );
-    }
+        /**
+         * command bus
+         */
+        $this->register(new CommandBus());
 
-    /**
-     * initialize logger
-     * return void
-     */
-    public function initLogger()
-    {
-        $date = new \DateTime();
-        $log_file = APP_PATH . $this["config"]->get("common/log/dir") . "/{$date->format("Y-m-d")}.log";
-        $this->register(
-            new MonologServiceProvider(),
-            [
-                "monolog.logfile" => $log_file,
-                "monolog.name" => $this["config"]->get("common/log/name"),
-                "monolog.level" => Logger::INFO
-            ]
-        );
-    }
+        /**
+         * security
+         */
+        $this->register(new Firewall());
 
-    /**
-     * initialize validator
-     * return void
-     */
-    public function initValidator()
-    {
-        $this->register(new ValidatorServiceProvider());
-        $this["validator.mapping.class_metadata_factory"] = function () {
-            $reader = new AnnotationReader();
-            $loader = new AnnotationLoader($reader);
-
-            $cache = $this->offsetExists("cache.factory") && $this["cache.factory"] instanceof Cache
-                ? new DoctrineCache($this["cache.factory"]) : null;
-
-            return new LazyLoadingMetadataFactory($loader, $cache);
-        };
-    }
-
-    /**
-     * initialize mailer
-     * return void
-     */
-    public function initMailer()
-    {
-        $this["swiftmailer.options"] = $this["config"]->get("mailer");
-        $this->register(new SwiftmailerServiceProvider());
-    }
-
-    /**
-     * initialize command bus
-     * return void
-     */
-    public function initCommandBus()
-    {
-        $this->register(new TacticianServiceProvider());
-    }
-
-    /**
-     * initialize controller as a service
-     * return void
-     */
-    public function initControllerService()
-    {
+        /**
+         * controller as a service
+         */
         $this->register(
             new ServiceControllerServiceProvider(),
             [
                 "tactician.inflector" => "class_name",
                 "tactician.middlewares" =>
-                [
-                    new CommandLoggerMiddleware($this["monolog"]),
-                    new CommandValidationMiddleware($this["validator"], $this["monolog"])
-                ]
+                    [
+                        $this["command.bus.logger.middleware"],
+                        $this["command.bus.validation.middleware"]
+                    ]
             ]
         );
-    }
 
-    /**
-     * initialize array processor to json
-     * return void
-     */
-    public function initFractal()
-    {
-        $this->register(new FractalServiceProvider());
-    }
-
-    /**
-     * initialize default event subscriber
-     * return void
-     */
-    public function initDefaultSubscribers()
-    {
-        $this->registerSubscriber(
-            ExceptionHandler::class,
-            function () {
-                return new ExceptionHandler($this);
-            }
-        );
-    }
-
-    /**
-     * initialize web application firewall
-     * return void
-     */
-    public function initFirewall()
-    {
-        if (! isset($this["users"])) {
-            throw new \RuntimeException("users must be set in container");
+        /**
+         * boot module if module feature enabled in configuration
+         */
+        if ($this->offsetExists("use.module") && $this["use.module"] === true) {
+            $this->bootModule();
         }
 
-        $this["security.jwt"] = $this["config"]->get("jwt");
-        $this->register(new SecurityJWTServiceProvider());
-        $this->register(new SecurityServiceProvider());
-        $this["security.firewalls"] = $this["config"]->get("firewall");
+        /**
+         * Save container in static variable
+         */
+        self::$container = $this;
     }
 
     /**
@@ -272,6 +166,7 @@ class Application extends SilexApplication
     }
 
     /**
+     * register our event subscriber
      * @param string $class
      * @param callable $callback
      */
@@ -282,5 +177,77 @@ class Application extends SilexApplication
         $this[$service_id] = $callback;
 
         $this["dispatcher"]->addSubscriberService($service_id, $class);
+    }
+
+    /**
+     * register stack middleware
+     * @param string $class
+     */
+    public function registerStackMiddleware($class)
+    {
+        if (func_num_args() === 0) {
+            throw new \InvalidArgumentException("Missing argument(s) when calling registerStackMiddlerware");
+        }
+
+        if (! class_exists($class)) {
+            throw new \InvalidArgumentException("{$class} not found!");
+        }
+
+        call_user_func_array([$this->builder, "push"], func_get_args());
+    }
+
+    /**
+     * boot module
+     */
+    protected function bootModule()
+    {
+        $base_namespace = $this["config"]->get("modules/base_namespace");
+        $modules = $this["config"]->get("modules/modules");
+
+        $controllers = [];
+
+        foreach ($modules as $module)
+        {
+            $module_namespace = $base_namespace . "\\" . key($module);
+            $module_class = $module_namespace . "\\Module";
+            $module_object = new $module_class();
+
+            if (! $module_object instanceof ModuleInterface) {
+                throw new \InvalidArgumentException(
+                    "Module {$module_class} must be instance of ServiceProviderInterface"
+                );
+            }
+
+            /**
+             * register service provider
+             */
+            $this->register($module_object);
+
+            /**
+             * register command and handler
+             */
+            $module_object->command($this);
+
+            /**
+             * replace controller with full namespace
+             */
+            $routes = $module[key($module)]["controllers"];
+            array_walk_recursive($routes, function (&$item) use ($module_namespace) {
+                $item = $module_namespace . "\\Controllers\\" . $item;
+            });
+
+            $controllers = array_merge($controllers, $routes);
+        }
+
+        /**
+         * register annotation controller
+         */
+        $this->register(
+            new AnnotationRouting(),
+            [
+                "annot.cache" => (isset($this["cache.factory"])) ? $this["cache.factory"] : null,
+                "annot.controllers" => $controllers
+            ]
+        );
     }
 }

@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Singo\Event\Listener;
 
 use Pimple\Container;
@@ -41,12 +40,22 @@ final class ExceptionHandler implements EventSubscriberInterface
 
         $exception = $event->getException();
 
-        if ($exception instanceof InvalidCommandException) {
+        if ($exception instanceof InvalidCommandException
+            || $exception instanceof \InvalidArgumentException) {
             $event->setResponse(new JsonResponse(
                 [
                     "error" => $exception->getMessage()
                 ],
                 Response::HTTP_BAD_REQUEST
+            ));
+        }
+
+        if ($exception instanceof \Exception) {
+            $event->setResponse(new JsonResponse(
+                [
+                    "error" => $exception->getMessage()
+                ],
+                Response::HTTP_INTERNAL_SERVER_ERROR
             ));
         }
     }

@@ -3,7 +3,6 @@
 
 namespace Singo\Tests;
 
-use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
 use Pimple\Container;
 use Silex\Provider\CacheServiceProvider;
@@ -16,6 +15,7 @@ use Singo\Tests\Provider\UserProvider;
 use Singo\Tests\Subscribers\TestSubscriber;
 use Singo\Tests\Commands\LoginCommand;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class ApplicationTest
@@ -37,7 +37,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             [
                 "app.path" => __DIR__,
                 "app.public.path" => __DIR__,
-                "config.path" => __DIR__ . "/Config/config.yml"
+                "config.path" => __DIR__ . "/Config/config.yml",
+                "config.cache.lifetime" => 300,
+                "cache.driver" => "array",
+                "cache.options" => [
+                    "namespace" => "singo"
+                ]
             ]
         );
 
@@ -54,8 +59,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
-                $container["request_stack"],
-                $container["fractal.manager"],
                 $container["command.bus"]
             );
         };
@@ -75,8 +78,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
-                $container["request_stack"],
-                $container["fractal.manager"],
                 $container["command.bus"]
             );
         };
@@ -96,8 +97,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
-                $container["request_stack"],
-                $container["fractal.manager"],
                 $container["command.bus"]
             );
         };
@@ -126,8 +125,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
-                $container["request_stack"],
-                $container["fractal.manager"],
                 $container["command.bus"]
             );
         };
@@ -171,8 +168,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
-                $container["request_stack"],
-                $container["fractal.manager"],
                 $container["command.bus"]
             );
         };
@@ -193,7 +188,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = Request::create("/login");
 
-        $token = $this->app->handle($request)->getContent();
+        $app = $this->app->builder->resolve($this->app);
+
+        $token = $app->handle($request)->getContent();
 
         // Ensure return token
         $this->assertContains("data", $token);
@@ -204,7 +201,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $request =  Request::create("/vip");
 
         // Fail if no auth header
-        $this->assertEquals("401", $this->app->handle($request)->getStatusCode());
+        $this->assertEquals("401", $app->handle($request)->getStatusCode());
 
         $request->headers->add(
             [
@@ -212,7 +209,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $response = $this->app->handle($request)->getContent();
+        $response = $app->handle($request)->getContent();
 
         // return ok if auth header if present and valid
         $this->assertEquals("ok", $response);
@@ -270,5 +267,34 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $cached_log_name = $this->app["config"]->get("common/log/name");
 
         $this->assertEquals($log_name, $cached_log_name);
+    }
+
+    public function testStackMiddleware()
+    {
+        $this->app->init();
+
+        $this->app->get("/", function () {
+            return new Response("hello from controller");
+        });
+
+        $this->app->registerStackMiddleware("Singo\\Tests\\Middleware\\TestMiddleware");
+
+        $app = $this->app->builder->resolve($this->app);
+
+        $response = $app->handle(Request::create("/"));
+
+        $this->assertEquals($response->getContent(), "hello from middleware");
+    }
+
+    public function testModule()
+    {
+        $this->app["use.module"] = true;
+        $this->app->init();
+
+        $req = Request::create("/home");
+
+        $response = $this->app->handle($req);
+
+        $this->assertEquals("hello world", $response->getContent());
     }
 }
