@@ -285,4 +285,16 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($response->getContent(), "hello from middleware");
     }
+
+    public function testModule()
+    {
+        $this->app["use.module"] = true;
+        $this->app->init();
+
+        $req = Request::create("/home");
+
+        $response = $this->app->handle($req);
+
+        $this->assertEquals("hello world", $response->getContent());
+    }
 }
