@@ -5,6 +5,8 @@ namespace Singo;
 use Silex\Application as SilexApplication;
 use Silex\Provider\CacheServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
+use Singo\Contracts\Module\ModuleInterface;
+use Singo\Provider\AnnotationRouting;
 use Singo\Provider\CommandBus;
 use Singo\Provider\Config;
 use Singo\Provider\ContainerAwareEventDispatcher;
@@ -13,6 +15,8 @@ use Singo\Provider\Logger;
 use Singo\Provider\Mailer;
 use Singo\Provider\Orm;
 use Singo\Provider\Validator;
+use Stack\Builder;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class Application
@@ -24,6 +28,11 @@ class Application extends SilexApplication
      * @var Application
      */
     public static $container;
+
+    /**
+     * @var Builder
+     */
+    public $builder;
 
     /**
      * @param array $values
@@ -39,6 +48,30 @@ class Application extends SilexApplication
         if (! defined("PUBLIC_PATH")) {
             define("PUBLIC_PATH", $this["app.public.path"]);
         }
+
+        $this->builder = new Builder();
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function run(Request $request = null)
+    {
+        /**
+         * resolve stack middleware for our apps
+         */
+        $app = $this->builder->resolve($this);
+
+        /**
+         * override current apps with stacked http kernel
+         */
+        if ($request === null) {
+            $request =  Request::createFromGlobals();
+        }
+
+        $response = $app->handle($request);
+        $response->send();
+        $this->terminate($request, $response);
     }
 
     /**
@@ -107,6 +140,13 @@ class Application extends SilexApplication
         );
 
         /**
+         * boot module if module feature enabled in configuration
+         */
+        if ($this->offsetExists("use.module") && $this["use.module"] === true) {
+            $this->bootModule();
+        }
+
+        /**
          * Save container in static variable
          */
         self::$container = $this;
@@ -126,6 +166,7 @@ class Application extends SilexApplication
     }
 
     /**
+     * register our event subscriber
      * @param string $class
      * @param callable $callback
      */
@@ -136,5 +177,77 @@ class Application extends SilexApplication
         $this[$service_id] = $callback;
 
         $this["dispatcher"]->addSubscriberService($service_id, $class);
+    }
+
+    /**
+     * register stack middleware
+     * @param string $class
+     */
+    public function registerStackMiddleware($class)
+    {
+        if (func_num_args() === 0) {
+            throw new \InvalidArgumentException("Missing argument(s) when calling registerStackMiddlerware");
+        }
+
+        if (! class_exists($class)) {
+            throw new \InvalidArgumentException("{$class} not found!");
+        }
+
+        call_user_func_array([$this->builder, "push"], func_get_args());
+    }
+
+    /**
+     * boot module
+     */
+    protected function bootModule()
+    {
+        $base_namespace = $this["config"]->get("modules/base_namespace");
+        $modules = $this["config"]->get("modules/modules");
+
+        $controllers = [];
+
+        foreach ($modules as $module)
+        {
+            $module_namespace = $base_namespace . "\\" . key($module);
+            $module_class = $module_namespace . "\\Module";
+            $module_object = new $module_class();
+
+            if (! $module_object instanceof ModuleInterface) {
+                throw new \InvalidArgumentException(
+                    "Module {$module_class} must be instance of ServiceProviderInterface"
+                );
+            }
+
+            /**
+             * register service provider
+             */
+            $this->register($module_object);
+
+            /**
+             * register command and handler
+             */
+            $module_object->command($this);
+
+            /**
+             * replace controller with full namespace
+             */
+            $routes = $module[key($module)]["controllers"];
+            array_walk_recursive($routes, function (&$item) use ($module_namespace) {
+                $item = $module_namespace . "\\Controllers\\" . $item;
+            });
+
+            $controllers = array_merge($controllers, $routes);
+        }
+
+        /**
+         * register annotation controller
+         */
+        $this->register(
+            new AnnotationRouting(),
+            [
+                "annot.cache" => (isset($this["cache.factory"])) ? $this["cache.factory"] : null,
+                "annot.controllers" => $controllers
+            ]
+        );
     }
 }

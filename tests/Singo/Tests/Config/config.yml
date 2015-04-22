@@ -92,7 +92,7 @@ jwt:
 # firewall configuration
 firewall:
   login:
-    pattern: test|command|validate|login
+    pattern: test|command|validate|login|home
     anonymous: yes
   secured:
     pattern: ^.*$
@@ -100,3 +100,17 @@ firewall:
       use_forward: 1
       require_previous_session: 0
       stateless: 1
+
+modules:
+  base_namespace: Singo\Tests\Modules
+  modules:
+    -
+      Main:
+        controllers:
+          /:
+            - IndexController
+    -
+      User:
+        controllers:
+          /user:
+            - UserController

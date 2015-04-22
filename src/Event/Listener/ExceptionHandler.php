@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Singo\Event\Listener;
 
 use Pimple\Container;

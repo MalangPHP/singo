@@ -2,5 +2,4 @@
 tests/Singo/Tests/Resources/Logs/*.log
 /.idea
 /coverage
-composer.lock
 .env
