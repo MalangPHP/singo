@@ -7,8 +7,15 @@ use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Singo\Application;
 
+/**
+ * Class AnnotationRouting
+ * @package Singo\Provider
+ */
 class AnnotationRouting implements ServiceProviderInterface
 {
+    /**
+     * @param Container $container
+     */
     public function register(Container $container)
     {
         $container->register(new AnnotationServiceProvider());
