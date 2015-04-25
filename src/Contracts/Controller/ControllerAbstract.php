@@ -13,11 +13,6 @@ abstract class ControllerAbstract implements ControllerInterface
 {
     use CommandBusAwareTrait;
 
-    /**
-     * @var CommandBus
-     */
-    protected $bus;
-
 
     /**
      * {@inheritdoc}
