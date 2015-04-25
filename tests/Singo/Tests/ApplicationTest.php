@@ -46,9 +46,16 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
+        $this->app->init($this->app);
+
         $this->app["users"] = function () {
             return new UserProvider();
         };
+    }
+
+    public function tearDown()
+    {
+        unset($this->app);
     }
 
     /**
@@ -56,7 +63,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testPublicRoute()
     {
-        $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
                 $container["command.bus"]
@@ -75,7 +81,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testRestrictedRoute()
     {
-        $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
                 $container["command.bus"]
@@ -94,7 +99,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testCommandBus()
     {
-        $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
                 $container["command.bus"]
@@ -122,7 +126,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testCommandValidation()
     {
-        $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
                 $container["command.bus"]
@@ -150,7 +153,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testEventDispatcher()
     {
-        $this->app->init();
         $this->app->registerSubscriber(TestSubscriber::class, function() {
             return new TestSubscriber();
         });
@@ -165,7 +167,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testAuthenticate()
     {
-        $this->app->init();
         $this->app["test.controller"] = function(Container $container) {
             return new TestController(
                 $container["command.bus"]
@@ -220,7 +221,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testMultipleOrmInstance()
     {
-        $this->app->init();
         $mysql_read = $this->app["orm.ems"]["mysql_read"];
         $mysql_write = $this->app["orm.ems"]["mysql_write"];
 
@@ -230,7 +230,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function testMultipleOdmInstance()
     {
-        $this->app->init();
         if (PHP_VERSION_ID < 70000
             && ! defined("HHVM_VERSION")
             && extension_loaded("mongo")
@@ -243,36 +242,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testCacheConfig()
-    {
-        $this->app->register(
-            new CacheServiceProvider(),
-            [
-                "cache.driver"  => "array",
-                "cache.options" => [
-                    "namespace" => "singo"
-                ],
-                "config.cache.lifetime" => 300
-            ]
-        );
-
-        $this->app->init();
-
-        $config = $this->app["config"];
-        $cached_config = $this->app["config"];
-
-        $this->assertEquals($config, $cached_config);
-
-        $log_name = $this->app["config"]->get("common/log/name");
-        $cached_log_name = $this->app["config"]->get("common/log/name");
-
-        $this->assertEquals($log_name, $cached_log_name);
-    }
-
     public function testStackMiddleware()
     {
-        $this->app->init();
-
         $this->app->get("/", function () {
             return new Response("hello from controller");
         });
@@ -284,17 +255,5 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle(Request::create("/"));
 
         $this->assertEquals($response->getContent(), "hello from middleware");
-    }
-
-    public function testModule()
-    {
-        $this->app["use.module"] = true;
-        $this->app->init();
-
-        $req = Request::create("/home");
-
-        $response = $this->app->handle($req);
-
-        $this->assertEquals("hello world", $response->getContent());
     }
 }

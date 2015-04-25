@@ -12,7 +12,8 @@
         "jowy/silex-config-service-provider": "~1.1.1",
         "jowy/silex-pimple-aware-event-dispatcher": "~1.0.0",
         "stack/builder": "~1.0",
-        "ddesrosiers/silex-annotation-provider": "dev-master"
+        "ddesrosiers/silex-annotation-provider": "dev-master",
+        "symfony/console": "~2.6"
     },
     "require-dev": {
         "symfony/yaml": "~2.6",

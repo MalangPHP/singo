@@ -2,19 +2,14 @@
 
 namespace Singo\Contracts\Module;
 
-use Pimple\ServiceProviderInterface;
-use Silex\Api\BootableProviderInterface;
-use Silex\Api\EventListenerProviderInterface;
-use Singo\Application;
-
 /**
  * Interface ModuleInterface
  * @package Singo\Contracts\Module
  */
-interface ModuleInterface extends
-    ServiceProviderInterface,
-    BootableProviderInterface,
-    EventListenerProviderInterface
+interface ModuleInterface
 {
-    public function command(Application $app);
+    /**
+     * @return string
+     */
+    public static function getName();
 }
