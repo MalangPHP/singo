@@ -2,7 +2,6 @@
 
 namespace Singo;
 
-use Pimple\Container;
 use Silex\Provider\CacheServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
 use Singo\Provider\CommandBus;
@@ -26,9 +25,9 @@ trait ServiceInitializator
     public static $container;
 
     /**
-     * @param Container $container
+     * @param Application $container
      */
-    public function init(Container $container)
+    public function init(Application $container)
     {
         /**
          * container aware event dispatcher
@@ -102,4 +101,9 @@ trait ServiceInitializator
             $this->bootModule();
         }
     }
+
+    /**
+     * @return void
+     */
+    abstract protected function bootModule();
 }
