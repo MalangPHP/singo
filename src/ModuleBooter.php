@@ -48,12 +48,14 @@ trait ModuleBooter
             /**
              * replace controller with full namespace
              */
-            $routes = $module[key($module)]["controllers"];
-            array_walk_recursive($routes, function (&$item) use ($module_namespace) {
-                $item = $module_namespace . "\\Controllers\\" . $item;
-            });
+            if (isset($module[key($module)]["controllers"])) {
+                $routes = $module[key($module)]["controllers"];
+                array_walk_recursive($routes, function (&$item) use ($module_namespace) {
+                    $item = $module_namespace . "\\Controllers\\" . $item;
+                });
 
-            $controllers = array_merge($controllers, $routes);
+                $controllers = array_merge($controllers, $routes);
+            }
         }
 
         /**
