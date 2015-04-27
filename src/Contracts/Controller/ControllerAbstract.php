@@ -3,6 +3,7 @@
 namespace Singo\Contracts\Controller;
 
 use League\Tactician\CommandBus;
+use Singo\Contracts\CommandBus\CommandBusAwareTrait;
 
 /**
  * Class ControllerAbstract
@@ -10,10 +11,7 @@ use League\Tactician\CommandBus;
  */
 abstract class ControllerAbstract implements ControllerInterface
 {
-    /**
-     * @var CommandBus
-     */
-    protected $bus;
+    use CommandBusAwareTrait;
 
 
     /**

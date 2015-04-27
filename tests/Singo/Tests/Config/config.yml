@@ -111,6 +111,3 @@ modules:
             - IndexController
     -
       User:
-        controllers:
-          /user:
-            - UserController

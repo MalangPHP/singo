@@ -3,32 +3,28 @@
 
 namespace Singo\Tests\Modules\Main;
 
-use Pimple\Container;
-use Silex\Application;
-use Singo\Application as Singo;
+use Singo\Contracts\Module\CliCommandProviderInterface;
 use Singo\Contracts\Module\ModuleInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Singo\Application as Singo;
+use Singo\Tests\Modules\Main\Cli\Commands\HelloWorldCommand;
+use Symfony\Component\Console\Application as CLI;
 
-class Module implements ModuleInterface
+class Module implements ModuleInterface, CliCommandProviderInterface
 {
-    public function register(Container $app)
+    /**
+     * {@inheritdoc}
+     */
+    public static function getName()
     {
-
+        return "Main Module";
     }
 
-    public function boot(Application $app)
+    /**
+     * {@inheritdoc}
+     */
+    public function cli(CLI $app, Singo $container)
     {
-
-    }
-
-    public function subscribe(Container $app, EventDispatcherInterface $dispatcher)
-    {
-
-    }
-
-    public function command(Singo $app)
-    {
-
+        $app->add(new HelloWorldCommand($container["command.bus"]));
     }
 }
 
