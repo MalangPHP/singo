@@ -8,7 +8,7 @@ use DDesrosiers\SilexAnnotations\Annotations as SLX;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * @SLX\Controller)
+ * @SLX\Controller(prefix="/")
  */
 class IndexController extends ControllerAbstract
 {

@@ -53,12 +53,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/danadesrosiers/silex-annotation-provider.git",
-                "reference": "4e21b292b0c084d8a044bf1d53943f70c20a534f"
+                "reference": "a70ed0c00ec93f48f4a5284aa66f58d9c3415e2d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/danadesrosiers/silex-annotation-provider/zipball/4e21b292b0c084d8a044bf1d53943f70c20a534f",
-                "reference": "4e21b292b0c084d8a044bf1d53943f70c20a534f",
+                "url": "https://api.github.com/repos/danadesrosiers/silex-annotation-provider/zipball/a70ed0c00ec93f48f4a5284aa66f58d9c3415e2d",
+                "reference": "a70ed0c00ec93f48f4a5284aa66f58d9c3415e2d",
                 "shasum": ""
             },
             "require": {
@@ -97,7 +97,7 @@
                 "service",
                 "silex"
             ],
-            "time": "2015-04-20 03:22:53"
+            "time": "2015-04-20 04:22:14"
         },
         {
             "name": "doctrine/annotations",

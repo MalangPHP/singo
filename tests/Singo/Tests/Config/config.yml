@@ -107,7 +107,6 @@ modules:
     -
       Main:
         controllers:
-          /:
-            - IndexController
+          - IndexController
     -
       User:
