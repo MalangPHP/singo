@@ -14,14 +14,6 @@ class Module implements ModuleInterface, CliCommandProviderInterface
     /**
      * {@inheritdoc}
      */
-    public static function getName()
-    {
-        return "Main Module";
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function cli(CLI $app, Singo $container)
     {
         $app->add(new HelloWorldCommand($container["command.bus"]));
