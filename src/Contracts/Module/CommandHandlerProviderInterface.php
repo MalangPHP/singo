@@ -2,7 +2,7 @@
 
 namespace Singo\Contracts\Module;
 
-use Silex\Application;
+use Singo\Application;
 
 /**
  * Interface CommandHandlerProviderInterface

@@ -8,8 +8,5 @@ namespace Singo\Contracts\Module;
  */
 interface ModuleInterface
 {
-    /**
-     * @return string
-     */
-    public static function getName();
+
 }
