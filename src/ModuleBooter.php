@@ -50,7 +50,7 @@ trait ModuleBooter
              */
             if (isset($module[key($module)]["controllers"])) {
                 $routes = $module[key($module)]["controllers"];
-                array_walk_recursive($routes, function (&$item) use ($module_namespace) {
+                array_walk($routes, function (&$item) use ($module_namespace) {
                     $item = $module_namespace . "\\Controllers\\" . $item;
                 });
 
