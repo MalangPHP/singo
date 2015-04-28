@@ -7,6 +7,7 @@ use Pimple\ServiceProviderInterface;
 use Silex\Provider\TacticianServiceProvider;
 use Singo\Bus\Middleware\CommandLoggerMiddleware;
 use Singo\Bus\Middleware\CommandValidationMiddleware;
+use League\Tactician\CommandBus as Bus;
 
 /**
  * Class CommandBus
@@ -28,5 +29,9 @@ class CommandBus implements ServiceProviderInterface
         };
 
         $container->register(new TacticianServiceProvider());
+
+        $container[Bus::class] = function () use ($container) {
+            return $container["command.bus"];
+        };
     }
 }
