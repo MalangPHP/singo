@@ -8,6 +8,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -47,6 +49,16 @@ final class ExceptionHandler implements EventSubscriberInterface
                     "error" => $exception->getMessage()
                 ],
                 Response::HTTP_BAD_REQUEST
+            ));
+        }
+
+        if ($exception instanceof NotFoundHttpException
+            || $exception instanceof MethodNotAllowedHttpException) {
+            $event->setResponse(new JsonResponse(
+                [
+                    "error" => $exception->getMessage()
+                ],
+                Response::HTTP_NOT_FOUND
             ));
         }
 

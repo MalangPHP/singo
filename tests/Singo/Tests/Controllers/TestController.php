@@ -3,7 +3,7 @@
 
 namespace Singo\Tests\Controllers;
 
-use Singo\Contracts\Controller\ControllerAbstract;
+use League\Tactician\CommandBus;
 use Singo\Tests\Commands\LoginCommand;
 use Singo\Tests\Commands\TestCommand;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,8 +12,21 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  * Class TestController
  * @package Singo\Tests\Controllers
  */
-class TestController extends ControllerAbstract
+class TestController
 {
+    /**
+     * @var CommandBus
+     */
+    protected $bus;
+
+    /**
+     * @param CommandBus $bus
+     */
+    public function __construct(CommandBus $bus)
+    {
+        $this->bus = $bus;
+    }
+
     /**
      * @return string
      */

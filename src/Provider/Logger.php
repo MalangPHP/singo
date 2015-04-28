@@ -28,5 +28,12 @@ class Logger implements ServiceProviderInterface
                 "monolog.level" => Monolog::INFO
             ]
         );
+
+        /**
+         * alias for auto injection
+         */
+        $container[Monolog::class] = function () use ($container) {
+            return $container["monolog"];
+        };
     }
 }
