@@ -2,14 +2,13 @@
 
 namespace Singo\Event\Listener;
 
-use Pimple\Container;
-use Singo\Bus\Exception\InvalidCommandException;
+use Psr\Log\LoggerInterface;
+use Silex\Component\Config\Driver\AbstractConfigDriver;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
-use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -19,16 +18,23 @@ use Symfony\Component\HttpKernel\KernelEvents;
 final class ExceptionHandler implements EventSubscriberInterface
 {
     /**
-     * @var Container
+     * @var LoggerInterface
      */
-    private $container;
+    private $logger;
 
     /**
-     * @param Container $container
+     * @var AbstractConfigDriver
      */
-    public function __construct(Container $container)
+    private $config;
+
+    /**
+     * @param AbstractConfigDriver $config
+     * @param LoggerInterface $logger
+     */
+    public function __construct(AbstractConfigDriver $config, LoggerInterface $logger)
     {
-        $this->container = $container;
+        $this->logger = $logger;
+        $this->config = $config;
     }
 
     /**
@@ -36,40 +42,36 @@ final class ExceptionHandler implements EventSubscriberInterface
      */
     public function onSilexError(GetResponseForExceptionEvent $event)
     {
-        if ($this->container["config"]->get("common/debug")) {
+        if ($this->config->get("common/debug")) {
             return;
         }
 
         $exception = $event->getException();
 
-        if ($exception instanceof InvalidCommandException
-            || $exception instanceof \InvalidArgumentException) {
+        /**
+         * dont show error message if exception are not from http exception
+         */
+        if (! $exception instanceof HttpException) {
+            $this->logger->error(sprintf("%s -> %s", $exception->getCode(), $exception->getMessage()));
             $event->setResponse(new JsonResponse(
                 [
-                    "error" => $exception->getMessage()
-                ],
-                Response::HTTP_BAD_REQUEST
-            ));
-        }
-
-        if ($exception instanceof NotFoundHttpException
-            || $exception instanceof MethodNotAllowedHttpException) {
-            $event->setResponse(new JsonResponse(
-                [
-                    "error" => $exception->getMessage()
-                ],
-                Response::HTTP_NOT_FOUND
-            ));
-        }
-
-        if ($exception instanceof \Exception) {
-            $event->setResponse(new JsonResponse(
-                [
-                    "error" => $exception->getMessage()
+                    "error" => "Internal error"
                 ],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             ));
+            return;
         }
+
+        /**
+         * show http exception error
+         */
+        $this->logger->error(sprintf("%s -> %s", $exception->getStatusCode(), $exception->getMessage()));
+        $event->setResponse(new JsonResponse(
+            [
+                "error" => $exception->getMessage()
+            ],
+            $exception->getStatusCode()
+        ));
     }
 
     /**
