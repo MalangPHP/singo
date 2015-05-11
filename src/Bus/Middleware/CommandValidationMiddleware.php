@@ -5,6 +5,7 @@ namespace Singo\Bus\Middleware;
 use League\Tactician\Middleware;
 use Psr\Log\LoggerInterface;
 use Singo\Bus\Exception\InvalidCommandException;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Validator;
 
 /**
@@ -50,7 +51,7 @@ class CommandValidationMiddleware implements Middleware
                 $violation->get(0)->getMessage()
             );
             $this->logger->error("{$command_name} : {$message}");
-            throw new InvalidCommandException($message);
+            throw new InvalidCommandException($message, Response::HTTP_BAD_REQUEST);
         }
 
         $this->logger->info("{$command_name} has passed validation");

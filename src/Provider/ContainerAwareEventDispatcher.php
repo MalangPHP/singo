@@ -43,7 +43,7 @@ class ContainerAwareEventDispatcher implements ServiceProviderInterface
         $container->registerSubscriber(
             ExceptionHandler::class,
             function () use ($container) {
-                return new ExceptionHandler($container);
+                return new ExceptionHandler($container["config"], $container["monolog"]);
             }
         );
     }
