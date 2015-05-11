@@ -5,7 +5,6 @@ namespace Singo\Tests;
 
 use Doctrine\ORM\EntityManager;
 use Pimple\Container;
-use Silex\Provider\CacheServiceProvider;
 use Singo\Application;
 use Singo\Tests\Controllers\TestController;
 use Singo\Tests\Event\TestEvent;
@@ -255,5 +254,42 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle(Request::create("/"));
 
         $this->assertEquals($response->getContent(), "hello from middleware");
+    }
+
+    public function testContentNegotiation()
+    {
+        $this->app->get("/", function () {
+            return new Response("hello from controller");
+        });
+
+        $req = Request::create("/");
+        $req->headers->add(['Accept' => 'application/json',]);
+
+        $app = $this->app->builder->resolve($this->app);
+
+        $app->handle($req);
+
+        $header = $req->attributes->get("_accept");
+        $this->assertInstanceOf('Negotiation\AcceptHeader', $header);
+        $this->assertEquals('application/json', $header->getValue());
+    }
+
+    public function testCors()
+    {
+        $this->app->post("/", function () {
+            return new Response("hello from controller");
+        });
+
+        $req = Request::create("/", "POST");
+        $req->headers->set("Origin", "notlocalhost");
+        $req->headers->set("Access-Control-Request-Method", "post");
+
+        $app = $this->app->builder->resolve($this->app);
+
+        $response = $app->handle($req);
+
+        $this->assertEquals(403, $response->getStatusCode());
+
+
     }
 }

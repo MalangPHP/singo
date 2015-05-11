@@ -6,6 +6,19 @@ common:
     level: DEBUG
   debug: 1
 
+# api configuration
+api:
+  cors:
+    allowedHeaders:
+      - '*'
+    allowedMethod:
+      - GET
+    allowedOrigins:
+      - localhost
+    exposedHeaders: 0
+    maxAge: 0
+    supportsCredentials: 0
+
 # mailer configuration
 mailer:
   host: localhost
