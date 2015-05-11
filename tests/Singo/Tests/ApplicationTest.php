@@ -265,10 +265,31 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $req = Request::create("/");
         $req->headers->add(['Accept' => 'application/json',]);
 
-        $this->app->run($req);
+        $app = $this->app->builder->resolve($this->app);
+
+        $app->handle($req);
 
         $header = $req->attributes->get("_accept");
         $this->assertInstanceOf('Negotiation\AcceptHeader', $header);
         $this->assertEquals('application/json', $header->getValue());
+    }
+
+    public function testCors()
+    {
+        $this->app->post("/", function () {
+            return new Response("hello from controller");
+        });
+
+        $req = Request::create("/", "POST");
+        $req->headers->set("Origin", "notlocalhost");
+        $req->headers->set("Access-Control-Request-Method", "post");
+
+        $app = $this->app->builder->resolve($this->app);
+
+        $response = $app->handle($req);
+
+        $this->assertEquals(403, $response->getStatusCode());
+
+
     }
 }

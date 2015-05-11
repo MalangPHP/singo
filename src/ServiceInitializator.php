@@ -13,6 +13,7 @@ use Singo\Provider\Mailer;
 use Singo\Provider\Orm;
 use Singo\Provider\Validator;
 use Negotiation\Stack\Negotiation;
+use Asm89\Stack\Cors;
 
 /**
  * Class ServiceInitializator
@@ -105,6 +106,19 @@ trait ServiceInitializator
                 "language_priorities" => $container["config"]->get("api/content_negotiator/language") ?: ["en"],
                 "format_priorities" => $container["config"]->get("api/content_negotiator/format") ?: ["*/*"]
             ]);
+
+            /**
+             * cors
+             */
+            $cors_config = $container["config"]->get("api/cors") ?: [
+                "allowedHeaders"        => ["*"],
+                "allowedMethod"         => ["*"],
+                "allowedOrigins"        => ["*"],
+                "exposedHeaders"        => false,
+                "maxAge"                => false,
+                "supportsCredentials"   => false
+            ];
+            $container->registerStackMiddleware(Cors::class, $cors_config);
         }
 
         /**
