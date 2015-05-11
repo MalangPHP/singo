@@ -12,6 +12,7 @@ use Singo\Provider\Logger;
 use Singo\Provider\Mailer;
 use Singo\Provider\Orm;
 use Singo\Provider\Validator;
+use Negotiation\Stack\Negotiation;
 
 /**
  * Class ServiceInitializator
@@ -89,10 +90,22 @@ trait ServiceInitializator
             ]
         );
 
+
+
         /**
          * Save container in static variable
          */
         self::$container = $container;
+
+        if ($this instanceof Application) {
+            /**
+             * content negotiation middleware
+             */
+            $container->registerStackMiddleware(Negotiation::class, null, null, null, [
+                "language_priorities" => $container["config"]->get("api/content_negotiator/language") ?: ["en"],
+                "format_priorities" => $container["config"]->get("api/content_negotiator/format") ?: ["*/*"]
+            ]);
+        }
 
         /**
          * boot module if module feature enabled in configuration

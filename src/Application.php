@@ -97,8 +97,8 @@ class Application extends SilexApplication
             throw new \InvalidArgumentException("Missing argument(s) when calling registerStackMiddlerware");
         }
 
-        if (! class_exists($class)) {
-            throw new \InvalidArgumentException("{$class} not found!");
+        if (! class_exists($class) && ! is_callable($class)) {
+            throw new \InvalidArgumentException("{$class} not found or not callable");
         }
 
         call_user_func_array([$this->builder, "push"], func_get_args());

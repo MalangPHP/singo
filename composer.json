@@ -13,7 +13,8 @@
         "jowy/silex-pimple-aware-event-dispatcher": "~1.0.0",
         "stack/builder": "~1.0",
         "ddesrosiers/silex-annotation-provider": "dev-master",
-        "symfony/console": "~2.6"
+        "symfony/console": "~2.6",
+        "willdurand/stack-negotiation": "~1.0"
     },
     "require-dev": {
         "symfony/yaml": "~2.6",
