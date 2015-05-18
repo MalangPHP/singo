@@ -8,6 +8,7 @@ use Pimple\ServiceProviderInterface;
 use Silex\Provider\PimpleAwareEventDispatcherServiceProvider;
 use Silex\PimpleAwareEventDispatcher;
 use Singo\Application;
+use Singo\Event\Listener\CliExceptionHandler;
 use Singo\Event\Listener\ExceptionHandler;
 
 /**
@@ -44,6 +45,12 @@ class ContainerAwareEventDispatcher implements ServiceProviderInterface
             ExceptionHandler::class,
             function () use ($container) {
                 return new ExceptionHandler($container["config"], $container["monolog"]);
+            }
+        );
+        $container->registerSubscriber(
+            CliExceptionHandler::class,
+            function () use ($container) {
+                return new CliExceptionHandler($container["config"], $container["monolog"]);
             }
         );
     }

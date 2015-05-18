@@ -37,6 +37,7 @@ class CliApplicationTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->app = new CliApplication($this->container);
+        $this->app->setDispatcher($this->container["dispatcher"]);
     }
 
     public function tearDown()
