@@ -8,7 +8,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -42,17 +42,17 @@ final class ExceptionHandler implements EventSubscriberInterface
      */
     public function onSilexError(GetResponseForExceptionEvent $event)
     {
+        $exception = $event->getException();
+        $this->logger->error($exception->getMessage());
+
         if ($this->config->get("common/debug")) {
             return;
         }
 
-        $exception = $event->getException();
-
         /**
          * dont show error message if exception are not from http exception
          */
-        if (! $exception instanceof HttpException) {
-            $this->logger->error(sprintf("%s -> %s", $exception->getCode(), $exception->getMessage()));
+        if (! $exception instanceof HttpExceptionInterface) {
             $event->setResponse(new JsonResponse(
                 [
                     "error" => "Internal error"
@@ -65,7 +65,6 @@ final class ExceptionHandler implements EventSubscriberInterface
         /**
          * show http exception error
          */
-        $this->logger->error(sprintf("%s -> %s", $exception->getStatusCode(), $exception->getMessage()));
         $event->setResponse(new JsonResponse(
             [
                 "error" => $exception->getMessage()
